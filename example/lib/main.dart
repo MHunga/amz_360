@@ -23,13 +23,13 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         body: SafeArea(
           child: Amz360View(
-            //id: "",
-            displayMode: Amz360ViewType.viewOnlyImageInScene,
-            imageUrl:
-                "https://saffi3d.files.wordpress.com/2011/08/12-marla-copy.jpg",
+            id: "",
+            // displayMode: Amz360ViewType.viewOnlyImageInScene,
+            // imageUrl:
+            //     "https://saffi3d.files.wordpress.com/2011/08/12-marla-copy.jpg",
             autoRotationSpeed: 0.0,
             enableSensorControl: true,
-            // showControl: true,
+            showControl: false,
             controlIcons: [
               ControlIcon(
                   child: Image.asset("assets/info.png", width: 24, height: 24)),

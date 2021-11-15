@@ -154,7 +154,21 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
             id: 0,
             image:
                 "https://saffi3d.files.wordpress.com/2011/08/12-marla-copy.jpg",
-            hotspots: []),
+            hotspots: [
+              Hotspot(
+                  longitude: (90 * (5000 + 928.34) / 5000) - 5,
+                  latitude: 0,
+                  icon: ControlIcon(
+                      child: const Icon(
+                    Icons.info,
+                    color: Color(0xffffffff),
+                  ))),
+              Hotspot(
+                  longitude: (90 * (5000 - 4949.23) / 5000) + 5,
+                  latitude: -0,
+                  icon: ControlIcon(
+                      child: const Icon(Icons.star, color: Color(0xffffffff))))
+            ]),
         ProjectImage(
             id: 1,
             image:
@@ -204,6 +218,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
                 imageUrl = projectImage!.image;
               }
               _loadTexture(Image.network(imageUrl!).image);
+              //_loadTexture(Image.asset("assets/panorama.jpeg").image);
               _streamController.add(null);
               _moveController.reset();
             }
@@ -237,14 +252,11 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
       imageUrl = projectImage!.image;
     }
     _loadTexture(Image.network(imageUrl!).image);
+    //_loadTexture(Image.asset("assets/panorama.jpeg").image);
   }
 
   @override
   Widget build(BuildContext context) {
-    // precacheImage(NetworkImage(projectInfo.images![0].image!), context);
-    // precacheImage(NetworkImage(projectInfo.images![1].image!), context);
-    // precacheImage(NetworkImage(projectInfo.images![2].image!), context);
-    // precacheImage(NetworkImage(projectInfo.images![3].image!), context);
     if (widget.displayMode == Amz360ViewType.viewOriginalImage) {
       return Image.network(projectInfo.images!
           .firstWhere((element) => element.id == projectInfo.initImageId)
@@ -266,7 +278,6 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
               builder: (context, child) => Transform(
                 alignment: Alignment.topCenter,
                 transform: Matrix4(
-                    // @formatter:off
                     1,
                     0,
                     0,
@@ -286,7 +297,6 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
                     0,
                     0,
                     1),
-                // @formatter:on
                 //scale: _scaleAnimation,
                 child: Stack(
                   children: [
@@ -398,6 +408,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
     final List<Widget> widgets = <Widget>[];
     if (hotspots != null && scene != null) {
       for (Hotspot hotspot in hotspots) {
+        hotspot.showControlListenter(widget.showControl);
         final Vector3 pos = Amz360Utils.shared
             .positionFromLatLon(scene!, hotspot.latitude, hotspot.longitude);
         final Offset orgin =
@@ -440,6 +451,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
       projectImage!.hotspots!.add(Hotspot(
           latitude: degrees(-o.y),
           longitude: degrees(o.x),
+          fromServer: false,
           title: "Title",
           description: "This is Descriptions",
           callbackMovement: (idImage, lat, long) {
@@ -608,6 +620,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
     // animate zomming
     final double zoom = scene!.camera.zoom + zoomDelta * _dampingFactor;
     zoomDelta *= 1 - _dampingFactor;
+    // scene!.camera.zoom = zoom.clamp(widget.minZoom, widget.maxZoom);
     scene!.camera.zoom = zoom.clamp(widget.minZoom, widget.maxZoom);
     // stop animation if not needed
     // if (latitudeDelta.abs() < 0.001 &&
@@ -627,8 +640,10 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
     Vector3 o = Amz360Utils.shared.quaternionToOrientation(q);
     final double minLat = radians(math.max(-89.9, minLatitude));
     final double maxLat = radians(math.min(89.9, maxLatitude));
+
     final double minLon = radians(minLongitude);
     final double maxLon = radians(maxLongitude);
+
     final double lat = (-o.y).clamp(minLat, maxLat);
     final double lon = o.x.clamp(minLon, maxLon);
     if (lat + latitude < minLat) latitude = minLat - lat;

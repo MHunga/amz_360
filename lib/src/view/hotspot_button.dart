@@ -2,8 +2,11 @@ import 'package:amz_360/src/view/menu_control.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'edit_hotspot_dialog.dart';
+
+// ignore: must_be_immutable
 class HotspotButton extends StatefulWidget {
-  const HotspotButton({
+  HotspotButton({
     Key? key,
     required this.icon,
     this.onPressed,
@@ -11,6 +14,7 @@ class HotspotButton extends StatefulWidget {
     this.descriptions,
     this.callbackMovement,
     this.idImage,
+    this.isShowControl = false,
   }) : super(key: key);
   final ControlIcon icon;
   final Function()? onPressed;
@@ -18,6 +22,7 @@ class HotspotButton extends StatefulWidget {
   final String? descriptions;
   final int? idImage;
   final Function(int)? callbackMovement;
+  bool isShowControl;
 
   @override
   State<HotspotButton> createState() => _HotspotButtonState();
@@ -59,7 +64,7 @@ class _HotspotButtonState extends State<HotspotButton>
                 child: Container(
                     padding: const EdgeInsets.all(10),
                     constraints:
-                        const BoxConstraints(maxWidth: 250, minWidth: 150),
+                        const BoxConstraints(maxWidth: 250, minWidth: 100),
                     margin: const EdgeInsets.only(top: 5, left: 10),
                     decoration: BoxDecoration(
                         color: Colors.white,
@@ -67,9 +72,34 @@ class _HotspotButtonState extends State<HotspotButton>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.title ?? "",
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
+                        Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(widget.title ?? "",
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600)),
+                              if (widget.isShowControl)
+                                const SizedBox(width: 24),
+                              if (widget.isShowControl)
+                                InkWell(
+                                  onTap: () async {
+                                    await showDialog(
+                                      context: context,
+                                      builder: (context) =>
+                                          EditInfoHotspotDialog(),
+                                    );
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(2.0),
+                                    child: Icon(
+                                      Icons.edit,
+                                      size: 16,
+                                    ),
+                                  ),
+                                )
+                            ]),
                         const SizedBox(height: 10),
                         Text(widget.descriptions ?? "",
                             style: const TextStyle(fontSize: 14)),
