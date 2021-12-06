@@ -22,26 +22,27 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         body: SafeArea(
-          child: Amz360View(
-            id: "",
+          child: Amz360View.asset(
+            //id: 1,
             // displayMode: Amz360ViewType.viewOnlyImageInScene,
             // imageUrl:
             //     "https://saffi3d.files.wordpress.com/2011/08/12-marla-copy.jpg",
+            imageAsset: "assets/panorama.jpeg",
             autoRotationSpeed: 0.0,
             enableSensorControl: true,
-            showControl: false,
-            controlIcons: [
-              ControlIcon(
-                  child: Image.asset("assets/info.png", width: 24, height: 24)),
-              ControlIcon(
-                  child: const Icon(Icons.location_on, color: Colors.white)),
-              ControlIcon(
-                  iconType: IconType.movement,
-                  child: Transform.rotate(
-                      angle: -math.pi / 4,
-                      child: Image.asset("assets/chervon.png",
-                          width: 24, height: 24)))
-            ],
+            //showControl: true,
+            // controlIcons: [
+            //   ControlIcon(
+            //       child: Image.asset("assets/info.png", width: 24, height: 24)),
+            //   ControlIcon(
+            //       child: const Icon(Icons.location_on, color: Colors.white)),
+            //   ControlIcon(
+            //       iconType: IconType.movement,
+            //       child: Transform.rotate(
+            //           angle: -math.pi / 4,
+            //           child: Image.asset("assets/chervon.png",
+            //               width: 24, height: 24)))
+            // ],
             onTap: (long, lat, t) {
               log("$long   $lat, $t");
             },

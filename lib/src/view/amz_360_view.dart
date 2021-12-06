@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:amz_360/amz_360.dart';
 import 'package:amz_360/src/models/project_info.dart';
 import 'package:amz_360/src/scene/mesh.dart';
 import 'package:amz_360/src/scene/scene.dart';
@@ -34,8 +35,10 @@ enum Amz360ViewType {
   viewOnlyImageInScene
 }
 
-class Amz360View extends StatefulWidget {
-  final String? id;
+class _Amz360Scence extends StatefulWidget {
+  final bool fromClient;
+
+  final int? idProject;
 
   /// The initial zoom, default to 1.0.
   final double zoom;
@@ -78,9 +81,12 @@ class Amz360View extends StatefulWidget {
 
   final String? imageUrl;
 
-  const Amz360View(
+  final String? imageAsset;
+
+  const _Amz360Scence(
       {Key? key,
-      this.id,
+      required this.fromClient,
+      this.idProject,
       this.zoom = 1.0,
       this.minZoom = 1.0,
       this.maxZoom = 5.0,
@@ -94,14 +100,16 @@ class Amz360View extends StatefulWidget {
       this.displayMode = Amz360ViewType.view360,
       this.controlIcons = const [],
       this.showControl = false,
-      this.imageUrl})
+      this.imageUrl,
+      this.imageAsset})
       : super(key: key);
 
   @override
-  _Amz360ViewState createState() => _Amz360ViewState();
+  _Amz360ScenceState createState() => _Amz360ScenceState();
 }
 
-class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
+class _Amz360ScenceState extends State<_Amz360Scence>
+    with TickerProviderStateMixin {
   final double minLatitude = -90;
 
   final double maxLatitude = 90;
@@ -143,56 +151,15 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
 
   late int currentIdImage;
 
-  ProjectInfo projectInfo = ProjectInfo(
-      id: "",
-      title: "My City",
-      author: "Mr Hung",
-      description: "this is my description of my city",
-      initImageId: 0,
-      location: "Ha Noi, Viet Nam",
-      images: [
-        ProjectImage(
-            id: 0,
-            image:
-                "https://saffi3d.files.wordpress.com/2011/08/12-marla-copy.jpg",
-            hotspots: [
-              Hotspot(
-                  longitude: (90 * (5000 + 928.34) / 5000) - 5,
-                  latitude: 0,
-                  icon: ControlIcon(
-                      child: const Icon(
-                    Icons.info,
-                    color: Color(0xffffffff),
-                  ))),
-              Hotspot(
-                  longitude: (90 * (5000 - 4949.23) / 5000) + 5,
-                  latitude: -0,
-                  icon: ControlIcon(
-                      child: const Icon(Icons.star, color: Color(0xffffffff))))
-            ]),
-        ProjectImage(
-            id: 1,
-            image:
-                "https://saffi3d.files.wordpress.com/2011/08/commercial_area_cam_v004.jpg",
-            hotspots: []),
-        ProjectImage(
-            id: 2,
-            image:
-                "https://saffi3d.files.wordpress.com/2011/08/community-club-pano_v009.jpg",
-            hotspots: []),
-        ProjectImage(
-            id: 3,
-            image:
-                "https://saffi3d.files.wordpress.com/2011/08/enterance_gate_v0014.jpg",
-            hotspots: []),
-      ]);
+  ProjectInfo? projectInfo;
 
   @override
   void initState() {
     super.initState();
-    projectImage = projectInfo.images!
-        .firstWhere((element) => element.id == projectInfo.initImageId);
-    currentIdImage = projectImage!.id!;
+    if (widget.fromClient) {
+      _getProject(widget.idProject);
+    }
+
     latitude = degrees(0);
     longitude = degrees(0);
     _streamController = StreamController.broadcast();
@@ -210,15 +177,18 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
             // longitude = _moveXAnimation.value;
             //latitude = moveYAnimation.value;
             if (_moveController.isCompleted) {
-              projectImage = projectInfo.images!
-                  .firstWhere((element) => element.id == currentIdImage);
-              String? imageUrl;
-              if (widget.imageUrl != null) {
-                imageUrl = widget.imageUrl;
-              } else {
-                imageUrl = projectImage!.image;
+              if (widget.fromClient) {
+                projectImage = projectInfo!.images!
+                    .firstWhere((element) => element.id == currentIdImage);
+                String? imageUrl;
+                if (widget.imageUrl != null) {
+                  imageUrl = widget.imageUrl;
+                } else {
+                  imageUrl = projectImage!.image;
+                }
+                _loadTexture(Image.network(imageUrl!).image);
               }
-              _loadTexture(Image.network(imageUrl!).image);
+
               //_loadTexture(Image.asset("assets/panorama.jpeg").image);
               _streamController.add(null);
               _moveController.reset();
@@ -232,6 +202,17 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
     _controller.repeat();
   }
 
+  _getProject(int? idProject) async {
+    await Amz360.instance.getProject().then((value) {
+      setState(() {
+        projectInfo = value;
+        projectImage = projectInfo!.images!
+            .firstWhere((element) => element.id == projectInfo!.initImageId);
+        currentIdImage = projectImage!.id!;
+      });
+    });
+  }
+
   @override
   void dispose() {
     _imageStream?.removeListener(ImageStreamListener(_updateTexture));
@@ -243,25 +224,47 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
   }
 
   @override
-  void didUpdateWidget(Amz360View oldWidget) {
+  void didUpdateWidget(_Amz360Scence oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (surface == null) return;
-    String? imageUrl;
-    if (widget.imageUrl != null) {
-      imageUrl = widget.imageUrl;
+    if (widget.fromClient) {
+      String? imageUrl;
+      if (widget.imageUrl != null) {
+        imageUrl = widget.imageUrl;
+      } else {
+        imageUrl = projectImage!.image;
+      }
+      _loadTexture(Image.network(imageUrl!).image);
     } else {
-      imageUrl = projectImage!.image;
+      if (widget.imageUrl != null) {
+        _loadTexture(Image.network(widget.imageUrl!).image);
+      } else if (widget.imageAsset != null) {
+        _loadTexture(Image.asset(widget.imageUrl!).image);
+      }
     }
-    _loadTexture(Image.network(imageUrl!).image);
+
     //_loadTexture(Image.asset("assets/panorama.jpeg").image);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.fromClient && projectInfo == null) {
+      return const Material(
+          child: Center(child: CircularProgressIndicator.adaptive()));
+    }
+
     if (widget.displayMode == Amz360ViewType.viewOriginalImage) {
-      return Image.network(projectInfo.images!
-          .firstWhere((element) => element.id == projectInfo.initImageId)
-          .image!);
+      if (!widget.fromClient) {
+        if (widget.imageUrl != null) {
+          return Image.network(widget.imageUrl!);
+        } else if (widget.imageAsset != null) {
+          return Image.asset(widget.imageAsset!);
+        }
+      } else {
+        return Image.network(projectInfo!.images!
+            .firstWhere((element) => element.id == projectInfo!.initImageId)
+            .image!);
+      }
     }
     return ClipRect(
       child: GestureDetector(
@@ -305,11 +308,12 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
                         opacity: Tween<double>(begin: 1, end: 0.5)
                             .animate(_moveController),
                         child: ScenceView(onSceneCreated: _onSceneCreated)),
-                    StreamBuilder(
-                        stream: _stream,
-                        builder: (context, snapshot) {
-                          return buildHotspotWidgets(projectImage!.hotspots!);
-                        }),
+                    if (widget.fromClient)
+                      StreamBuilder(
+                          stream: _stream,
+                          builder: (context, snapshot) {
+                            return buildHotspotWidgets(projectImage!.hotspots!);
+                          }),
                   ],
                 ),
               ),
@@ -337,7 +341,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
             //           onTap: () {},
             //           child: const Icon(Icons.zoom_out_map,
             //               color: Color(0xffffffff)))),
-            if (widget.showControl)
+            if (widget.showControl && widget.fromClient && projectInfo != null)
               Positioned(
                   top: 14,
                   child: StreamBuilder(
@@ -348,11 +352,11 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
                               await showDialog(
                                 context: context,
                                 builder: (context) => EditProfileProjectDialog(
-                                  projectInfo: projectInfo,
+                                  projectInfo: projectInfo!,
                                 ),
                               ).then((value) {
                                 if (value != null) {
-                                  projectInfo.changeInfo(
+                                  projectInfo!.changeInfo(
                                       title: value["title"],
                                       description: value["descriptions"],
                                       author: value["author"],
@@ -370,7 +374,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
                               Icons.edit_rounded,
                               color: Color(0xffffffff),
                             ),
-                            label: Text(projectInfo.title ?? ""));
+                            label: Text(projectInfo!.title ?? ""));
                       })),
             if (widget.showControl)
               Positioned(
@@ -480,7 +484,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
         await showDialog(
           context: context,
           builder: (context) => EditMovementHotspotDialog(
-            images: projectInfo.images!,
+            images: projectInfo!.images!,
           ),
         ).then((value) {
           _controller.repeat();
@@ -572,7 +576,7 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
     scene.camera.fov = 75;
     scene.camera.zoom = widget.zoom;
     scene.camera.position.setFrom(Vector3(0, 0, 0.1));
-    if (projectImage != null) {
+    if (widget.fromClient && projectImage != null) {
       final Mesh mesh = Amz360Utils.shared.generateSphereMesh(
           croppedArea: const Rect.fromLTWH(0.0, 0.0, 1.0, 1.0),
           croppedFullWidth: 1.0,
@@ -585,6 +589,19 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
         imageUrl = projectImage!.image;
       }
       _loadTexture(Image.network(imageUrl!).image);
+      scene.world.add(surface!);
+      _updateView();
+    } else {
+      final Mesh mesh = Amz360Utils.shared.generateSphereMesh(
+          croppedArea: const Rect.fromLTWH(0.0, 0.0, 1.0, 1.0),
+          croppedFullWidth: 1.0,
+          croppedFullHeight: 1.0);
+      surface = Object(name: 'surface', mesh: mesh, backfaceCulling: false);
+      if (widget.imageUrl != null) {
+        _loadTexture(Image.network(widget.imageUrl!).image);
+      } else if (widget.imageAsset != null) {
+        _loadTexture(Image.asset(widget.imageAsset!).image);
+      }
       scene.world.add(surface!);
       _updateView();
     }
@@ -684,4 +701,98 @@ class _Amz360ViewState extends State<Amz360View> with TickerProviderStateMixin {
       _controller.stop();
     }
   }
+}
+
+class Amz360View extends _Amz360Scence {
+  const Amz360View.client(
+      {Key? key,
+      required int id,
+      double autoRotationSpeed = 0,
+      List<ControlIcon>? controlIcons,
+      Amz360ViewType displayMode = Amz360ViewType.view360,
+      bool enableSensorControl = false,
+      double minZoom = 1.0,
+      double maxZoom = 5.0,
+      double zoom = 1.0,
+      Function(double, double, double)? onLongPressEnd,
+      Function(double, double, double)? onLongPressMoveUpdate,
+      Function(double, double, double)? onLongPressStart,
+      Function(double, double, double)? onTap,
+      Function(double, double, double)? onViewChanged,
+      bool showControl = false})
+      : super(
+            key: key,
+            fromClient: true,
+            idProject: id,
+            autoRotationSpeed: autoRotationSpeed,
+            controlIcons: controlIcons,
+            displayMode: displayMode,
+            enableSensorControl: enableSensorControl,
+            minZoom: minZoom,
+            maxZoom: maxZoom,
+            zoom: zoom,
+            onLongPressEnd: onLongPressEnd,
+            onLongPressMoveUpdate: onLongPressMoveUpdate,
+            onLongPressStart: onLongPressStart,
+            onTap: onTap,
+            onViewChanged: onViewChanged,
+            showControl: showControl);
+
+  const Amz360View.url({
+    Key? key,
+    required String imageUrl,
+    double autoRotationSpeed = 0,
+    Amz360ViewType displayMode = Amz360ViewType.view360,
+    bool enableSensorControl = false,
+    double minZoom = 1.0,
+    double maxZoom = 5.0,
+    Function(double, double, double)? onLongPressEnd,
+    Function(double, double, double)? onLongPressMoveUpdate,
+    Function(double, double, double)? onLongPressStart,
+    Function(double, double, double)? onTap,
+    Function(double, double, double)? onViewChanged,
+  }) : super(
+            key: key,
+            fromClient: false,
+            imageUrl: imageUrl,
+            autoRotationSpeed: autoRotationSpeed,
+            displayMode: displayMode,
+            enableSensorControl: enableSensorControl,
+            minZoom: minZoom,
+            maxZoom: maxZoom,
+            onLongPressEnd: onLongPressEnd,
+            onLongPressMoveUpdate: onLongPressMoveUpdate,
+            onLongPressStart: onLongPressStart,
+            onTap: onTap,
+            onViewChanged: onViewChanged,
+            showControl: false);
+
+  const Amz360View.asset({
+    Key? key,
+    required String imageAsset,
+    double autoRotationSpeed = 0,
+    Amz360ViewType displayMode = Amz360ViewType.view360,
+    bool enableSensorControl = false,
+    double minZoom = 1.0,
+    double maxZoom = 5.0,
+    Function(double, double, double)? onLongPressEnd,
+    Function(double, double, double)? onLongPressMoveUpdate,
+    Function(double, double, double)? onLongPressStart,
+    Function(double, double, double)? onTap,
+    Function(double, double, double)? onViewChanged,
+  }) : super(
+            key: key,
+            fromClient: false,
+            imageAsset: imageAsset,
+            autoRotationSpeed: autoRotationSpeed,
+            displayMode: displayMode,
+            enableSensorControl: enableSensorControl,
+            minZoom: minZoom,
+            maxZoom: maxZoom,
+            onLongPressEnd: onLongPressEnd,
+            onLongPressMoveUpdate: onLongPressMoveUpdate,
+            onLongPressStart: onLongPressStart,
+            onTap: onTap,
+            onViewChanged: onViewChanged,
+            showControl: false);
 }
