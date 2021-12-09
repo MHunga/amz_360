@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -53,14 +54,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await _picker.pickMultiImage().then((value) {
+          await _picker.pickMultiImage().then((value)async{
             if (value != null) {
               for (var item in value) {
                 lisfile.add(File(item.path));
               }
-            }
-          });
-          await Amz360.instance
+               await Amz360.instance
               .create(
             title: "Titlexxxđasasssxx",
             descrition: "Descriptionssss",
@@ -72,6 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
               .then((value) {
             setState(() {});
           });
+            }
+          });
+         
         },
         child: const Icon(Icons.add),
       ),
@@ -91,11 +93,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: Image.network(
-                          list[index].images!.url!,
-                          fit: BoxFit.cover,
+                      GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder:  (_)=> ViewVR(id: list[index].id!)));
+                        },
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Image.network(
+                            list[index].images!.url!,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       Padding(
@@ -137,21 +144,32 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-// Amz360View.client(
-//             id: 1,
-//             autoRotationSpeed: 0.0,
-//             enableSensorControl: true,
-//             showControl: true,
-//             controlIcons: [
-//               ControlIcon(
-//                   child: Image.asset("assets/info.png", width: 24, height: 24)),
-//               ControlIcon(
-//                   child: const Icon(Icons.location_on, color: Colors.white)),
-//             ],
-//             onTap: (long, lat, t) {
-//               log("$long   $lat, $t");
-//             },
-//             onLongPressStart: (long, lat, t) {
-//               log("$long   $lat, $t");
-//             },
-//           ),
+
+class ViewVR extends StatelessWidget {
+  final int id;
+  const ViewVR({ Key? key, required this.id }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(child: Amz360View.client(
+            id: id,
+            autoRotationSpeed: 0.0,
+            enableSensorControl: true,
+            showControl: true,
+            controlIcons: [
+              ControlIcon(
+                  child: Image.asset("assets/info.png", width: 24, height: 24)),
+              ControlIcon(
+                  child: const Icon(Icons.location_on, color: Colors.white)),
+            ],
+            onTap: (long, lat, t) {
+              log("$long   $lat, $t");
+            },
+            onLongPressStart: (long, lat, t) {
+              log("$long   $lat, $t");
+            },
+          ),),
+    );
+  }
+}
