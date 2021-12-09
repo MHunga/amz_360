@@ -15,6 +15,7 @@ class HotspotButton extends StatefulWidget {
     this.callbackMovement,
     this.idImage,
     this.isShowControl = false,
+    this.callbackEditLable,
   }) : super(key: key);
   final ControlIcon icon;
   final Function()? onPressed;
@@ -22,6 +23,7 @@ class HotspotButton extends StatefulWidget {
   final String? descriptions;
   final int? idImage;
   final Function(int)? callbackMovement;
+  final Function(String, String)? callbackEditLable;
   bool isShowControl;
 
   @override
@@ -69,40 +71,46 @@ class _HotspotButtonState extends State<HotspotButton>
                     decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10)),
-                    child: Column(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
+                        Flexible(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(widget.title ?? "",
                                   style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600)),
-                              if (widget.isShowControl)
-                                const SizedBox(width: 24),
-                              if (widget.isShowControl)
-                                InkWell(
-                                  onTap: () async {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (context) =>
-                                          EditInfoHotspotDialog(),
-                                    );
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(2.0),
-                                    child: Icon(
-                                      Icons.edit,
-                                      size: 16,
-                                    ),
-                                  ),
-                                )
-                            ]),
-                        const SizedBox(height: 10),
-                        Text(widget.descriptions ?? "",
-                            style: const TextStyle(fontSize: 14)),
+                              const SizedBox(height: 10),
+                              Text(widget.descriptions ?? "",
+                                  style: const TextStyle(fontSize: 14)),
+                            ],
+                          ),
+                        ),
+                        if (widget.isShowControl)
+                          InkWell(
+                            onTap: () async {
+                              await showDialog(
+                                context: context,
+                                builder: (context) => EditInfoHotspotDialog(),
+                              ).then((value) {
+                                if (widget.callbackEditLable != null) {
+                                  widget.callbackEditLable!(
+                                      value['title'], value['descriptions']);
+                                }
+                              });
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Icon(
+                                Icons.edit,
+                                size: 16,
+                              ),
+                            ),
+                          )
                       ],
                     )),
               ),

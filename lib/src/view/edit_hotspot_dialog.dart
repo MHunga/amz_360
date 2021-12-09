@@ -1,4 +1,5 @@
 import 'package:amz_360/src/models/project_info.dart';
+import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -89,7 +90,7 @@ class EditInfoHotspotDialog extends StatelessWidget {
 class EditMovementHotspotDialog extends StatelessWidget {
   const EditMovementHotspotDialog({Key? key, required this.images})
       : super(key: key);
-  final List<ProjectImage> images;
+  final List<VTImage> images;
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -104,9 +105,9 @@ class EditMovementHotspotDialog extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 16),
                 child: InkWell(
                     onTap: () {
-                      Navigator.pop(context, images[index].id);
+                      Navigator.pop(context, images[index].image!.id);
                     },
-                    child: Image.network(images[index].image!)),
+                    child: Image.network(images[index].image!.url!)),
               ),
             )),
       ),

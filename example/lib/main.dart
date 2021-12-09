@@ -1,11 +1,13 @@
-import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 import 'package:amz_360/amz_360.dart';
+import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
+  Amz360.instance.setClient("1p7g4RrCOpQM2ze4rki1j4KvK");
   runApp(const MyApp());
 }
 
@@ -18,40 +20,138 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: SafeArea(
-          child: Amz360View.asset(
-            //id: 1,
-            // displayMode: Amz360ViewType.viewOnlyImageInScene,
-            // imageUrl:
-            //     "https://saffi3d.files.wordpress.com/2011/08/12-marla-copy.jpg",
-            imageAsset: "assets/panorama.jpeg",
-            autoRotationSpeed: 0.0,
-            enableSensorControl: true,
-            //showControl: true,
-            // controlIcons: [
-            //   ControlIcon(
-            //       child: Image.asset("assets/info.png", width: 24, height: 24)),
-            //   ControlIcon(
-            //       child: const Icon(Icons.location_on, color: Colors.white)),
-            //   ControlIcon(
-            //       iconType: IconType.movement,
-            //       child: Transform.rotate(
-            //           angle: -math.pi / 4,
-            //           child: Image.asset("assets/chervon.png",
-            //               width: 24, height: 24)))
-            // ],
-            onTap: (long, lat, t) {
-              log("$long   $lat, $t");
-            },
-            onLongPressStart: (long, lat, t) {
-              log("$long   $lat, $t");
-            },
-          ),
-        ),
-      ),
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: HomeScreen(),
     );
   }
 }
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final ImagePicker _picker = ImagePicker();
+  List<File> lisfile = [];
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("360 example"),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await _picker.pickMultiImage().then((value) {
+            if (value != null) {
+              for (var item in value) {
+                lisfile.add(File(item.path));
+              }
+            }
+          });
+          await Amz360.instance
+              .create(
+            title: "Titlexxxđasasssxx",
+            descrition: "Descriptionssss",
+            images: lisfile,
+            progressCallback: (sentBytes, totalBytes) {
+              print("Progress: $sentBytes/$totalBytes");
+            },
+          )
+              .then((value) {
+            setState(() {});
+          });
+        },
+        child: const Icon(Icons.add),
+      ),
+      body: SafeArea(
+          child: FutureBuilder<ResponseVtListProject>(
+        future: Amz360.instance.getListProject(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            print(snapshot.error);
+          }
+          if (snapshot.hasData) {
+            final list = snapshot.data!.data!;
+            return ListView.builder(
+              itemCount: list.length,
+              itemBuilder: (context, index) => Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: Image.network(
+                          list[index].images!.url!,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          list[index].title ?? "",
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const Divider()
+                    ],
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    right: 0,
+                    child: ElevatedButton(
+                        style:
+                            TextButton.styleFrom(backgroundColor: Colors.red),
+                        onPressed: () async {
+                          await Amz360.instance
+                              .delete(list[index].id!)
+                              .then((value) {
+                            setState(() {});
+                          });
+                        },
+                        child: const Text("Xoá")),
+                  )
+                ],
+              ),
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator.adaptive(),
+            );
+          }
+        },
+      )),
+    );
+  }
+}
+// Amz360View.client(
+//             id: 1,
+//             autoRotationSpeed: 0.0,
+//             enableSensorControl: true,
+//             showControl: true,
+//             controlIcons: [
+//               ControlIcon(
+//                   child: Image.asset("assets/info.png", width: 24, height: 24)),
+//               ControlIcon(
+//                   child: const Icon(Icons.location_on, color: Colors.white)),
+//             ],
+//             onTap: (long, lat, t) {
+//               log("$long   $lat, $t");
+//             },
+//             onLongPressStart: (long, lat, t) {
+//               log("$long   $lat, $t");
+//             },
+//           ),

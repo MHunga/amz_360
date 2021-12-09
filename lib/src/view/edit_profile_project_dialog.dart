@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:amz_360/src/models/project_info.dart';
+import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
@@ -12,15 +12,15 @@ class EditProfileProjectDialog extends StatelessWidget {
     titleController = TextEditingController(text: projectInfo.title);
     descriptionsController =
         TextEditingController(text: projectInfo.description);
-    authorController = TextEditingController(text: projectInfo.author);
-    locationController = TextEditingController(text: projectInfo.location);
+    //authorController = TextEditingController(text: projectInfo.author);
+    //locationController = TextEditingController(text: projectInfo.location);
     formKey = GlobalKey<FormState>();
   }
-  final ProjectInfo projectInfo;
+  final VTProject projectInfo;
   late TextEditingController titleController;
   late TextEditingController descriptionsController;
-  late TextEditingController authorController;
-  late TextEditingController locationController;
+  //late TextEditingController authorController;
+  //late TextEditingController locationController;
   late GlobalKey<FormState> formKey;
   @override
   Widget build(BuildContext context) {
@@ -69,41 +69,41 @@ class EditProfileProjectDialog extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: authorController,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    labelText: "Author",
-                    filled: true,
-                    fillColor: Colors.black12,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                  validator: (v) {
-                    if (v!.isEmpty) {
-                      return "Can not empty";
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: locationController,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    labelText: "Location",
-                    filled: true,
-                    fillColor: Colors.black12,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                  validator: (v) {
-                    if (v!.isEmpty) {
-                      return "Can not empty";
-                    }
-                  },
-                ),
+                // TextFormField(
+                //   controller: authorController,
+                //   style: const TextStyle(
+                //       fontSize: 16, fontWeight: FontWeight.w600),
+                //   decoration: InputDecoration(
+                //     labelText: "Author",
+                //     filled: true,
+                //     fillColor: Colors.black12,
+                //     border: OutlineInputBorder(
+                //         borderRadius: BorderRadius.circular(8)),
+                //   ),
+                //   validator: (v) {
+                //     if (v!.isEmpty) {
+                //       return "Can not empty";
+                //     }
+                //   },
+                // ),
+                // const SizedBox(height: 16),
+                // TextFormField(
+                //   controller: locationController,
+                //   style: const TextStyle(
+                //       fontSize: 16, fontWeight: FontWeight.w600),
+                //   decoration: InputDecoration(
+                //     labelText: "Location",
+                //     filled: true,
+                //     fillColor: Colors.black12,
+                //     border: OutlineInputBorder(
+                //         borderRadius: BorderRadius.circular(8)),
+                //   ),
+                //   validator: (v) {
+                //     if (v!.isEmpty) {
+                //       return "Can not empty";
+                //     }
+                //   },
+                // ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -121,8 +121,8 @@ class EditProfileProjectDialog extends StatelessWidget {
                             Navigator.pop(context, {
                               "title": titleController.text,
                               "descriptions": descriptionsController.text,
-                              "author": authorController.text,
-                              "location": locationController.text
+                              //"author": authorController.text,
+                              //"location": locationController.text
                             });
                           }
                         },

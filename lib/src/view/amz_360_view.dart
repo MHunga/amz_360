@@ -4,6 +4,8 @@ import 'dart:ui';
 
 import 'package:amz_360/amz_360.dart';
 import 'package:amz_360/src/models/project_info.dart';
+import 'package:amz_360/src/models/response_vt_project.dart';
+import 'package:amz_360/src/models/vt_hotspot.dart';
 import 'package:amz_360/src/scene/mesh.dart';
 import 'package:amz_360/src/scene/scene.dart';
 import 'package:amz_360/src/scene/scene_view.dart';
@@ -19,6 +21,7 @@ import 'package:amz_360/src/scene/object.dart';
 import 'control_chervon_painter.dart';
 import 'edit_hotspot_dialog.dart';
 import '../models/hotspot.dart';
+import 'hotspot_button.dart';
 import 'menu_control.dart';
 
 typedef EventCallback = Function(
@@ -132,8 +135,8 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   final double _animateDirection = 1.0;
   late AnimationController _controller;
 
-  late AnimationController _moveController;
-  late Animation<double> _scaleAnimation;
+  //late AnimationController _moveController;
+  //late Animation<double> _scaleAnimation;
   late Animation<double> moveYAnimation;
   double screenOrientation = 0.0;
   Vector3 orientation = Vector3(0, radians(90), 0);
@@ -147,11 +150,11 @@ class _Amz360ScenceState extends State<_Amz360Scence>
 
   ControlIcon? hotspotWidget;
 
-  ProjectImage? projectImage;
+  VTImage? vtCurrentImage;
 
   late int currentIdImage;
 
-  ProjectInfo? projectInfo;
+  VTProject? vtProject;
 
   @override
   void initState() {
@@ -168,48 +171,49 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     _updateSensorControl();
 
     _controller = AnimationController(
-        duration: const Duration(milliseconds: 1000), vsync: this)
+        duration: const Duration(milliseconds: 40000), vsync: this)
       ..addListener(_updateView);
 
-    _moveController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 1))
-          ..addListener(() {
-            // longitude = _moveXAnimation.value;
-            //latitude = moveYAnimation.value;
-            if (_moveController.isCompleted) {
-              if (widget.fromClient) {
-                projectImage = projectInfo!.images!
-                    .firstWhere((element) => element.id == currentIdImage);
-                String? imageUrl;
-                if (widget.imageUrl != null) {
-                  imageUrl = widget.imageUrl;
-                } else {
-                  imageUrl = projectImage!.image;
-                }
-                _loadTexture(Image.network(imageUrl!).image);
-              }
+    // _moveController =
+    //     AnimationController(vsync: this, duration: const Duration(seconds: 1))
+    //       ..addListener(() {
+    //         // longitude = _moveXAnimation.value;
+    //         //latitude = moveYAnimation.value;
+    //         if (_moveController.isCompleted) {
+    //           if (widget.fromClient) {
+    //             projectImage = projectInfo!.images!
+    //                 .firstWhere((element) => element.id == currentIdImage);
+    //             String? imageUrl;
+    //             if (widget.imageUrl != null) {
+    //               imageUrl = widget.imageUrl;
+    //             } else {
+    //               imageUrl = projectImage!.image;
+    //             }
+    //             _loadTexture(Image.network(imageUrl!).image);
+    //           }
 
-              //_loadTexture(Image.asset("assets/panorama.jpeg").image);
-              _streamController.add(null);
-              _moveController.reset();
-            }
-          });
+    //           //_loadTexture(Image.asset("assets/panorama.jpeg").image);
+    //           _streamController.add(null);
+    //           _moveController.reset();
+    //         }
+    //       });
 
-    _scaleAnimation = Tween<double>(begin: 1, end: 2).animate(
-        CurvedAnimation(parent: _moveController, curve: Curves.easeOutQuart));
+    // _scaleAnimation = Tween<double>(begin: 1, end: 2).animate(
+    //     CurvedAnimation(parent: _moveController, curve: Curves.easeOutQuart));
 
     // if (widget.sensorControl != SensorControl.None || widget.animSpeed != 0)
     _controller.repeat();
   }
 
   _getProject(int? idProject) async {
-    await Amz360.instance.getProject().then((value) {
-      setState(() {
-        projectInfo = value;
-        projectImage = projectInfo!.images!
-            .firstWhere((element) => element.id == projectInfo!.initImageId);
-        currentIdImage = projectImage!.id!;
-      });
+    await Amz360.instance.getProject(widget.idProject!).then((value) {
+      if (value.status == "success") {
+        setState(() {
+          vtProject = value.data;
+          vtCurrentImage = vtProject!.images![0];
+          currentIdImage = vtCurrentImage!.image!.id!;
+        });
+      }
     });
   }
 
@@ -232,7 +236,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
       if (widget.imageUrl != null) {
         imageUrl = widget.imageUrl;
       } else {
-        imageUrl = projectImage!.image;
+        imageUrl = vtCurrentImage!.image!.url;
       }
       _loadTexture(Image.network(imageUrl!).image);
     } else {
@@ -248,7 +252,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.fromClient && projectInfo == null) {
+    if (widget.fromClient && vtProject == null) {
       return const Material(
           child: Center(child: CircularProgressIndicator.adaptive()));
     }
@@ -261,9 +265,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
           return Image.asset(widget.imageAsset!);
         }
       } else {
-        return Image.network(projectInfo!.images!
-            .firstWhere((element) => element.id == projectInfo!.initImageId)
-            .image!);
+        return Image.network(vtCurrentImage!.image!.url!);
       }
     }
     return ClipRect(
@@ -277,46 +279,49 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AnimatedBuilder(
-              animation: _moveController,
-              builder: (context, child) => Transform(
-                alignment: Alignment.topCenter,
-                transform: Matrix4(
-                    1,
-                    0,
-                    0,
-                    0,
-                    //column
-                    0,
-                    1,
-                    0,
-                    -0.0003 * _scaleAnimation.value,
-                    //
-                    0,
-                    0,
-                    1,
-                    0,
-                    //
-                    0,
-                    0,
-                    0,
-                    1),
-                //scale: _scaleAnimation,
-                child: Stack(
-                  children: [
-                    FadeTransition(
-                        opacity: Tween<double>(begin: 1, end: 0.5)
-                            .animate(_moveController),
-                        child: ScenceView(onSceneCreated: _onSceneCreated)),
-                    if (widget.fromClient)
-                      StreamBuilder(
-                          stream: _stream,
-                          builder: (context, snapshot) {
-                            return buildHotspotWidgets(projectImage!.hotspots!);
-                          }),
-                  ],
-                ),
-              ),
+            // AnimatedBuilder(
+            //   animation: _moveController,
+            //   builder: (context, child) => Transform(
+            //     alignment: Alignment.topCenter,
+            //     transform: Matrix4(
+            //         1,
+            //         0,
+            //         0,
+            //         0,
+            //         //column
+            //         0,
+            //         1,
+            //         0,
+            //         -0.0003 * _scaleAnimation.value,
+            //         //
+            //         0,
+            //         0,
+            //         1,
+            //         0,
+            //         //
+            //         0,
+            //         0,
+            //         0,
+            //         1),
+            //     //scale: _scaleAnimation,
+            //     child:
+            //   ),
+            // ),
+
+            Stack(
+              children: [
+                // FadeTransition(
+                //     opacity: Tween<double>(begin: 1, end: 0.5)
+                //         .animate(_moveController),
+                //     child:),
+                ScenceView(onSceneCreated: _onSceneCreated),
+                if (widget.fromClient)
+                  StreamBuilder(
+                      stream: _stream,
+                      builder: (context, snapshot) {
+                        return buildHotspotWidgets();
+                      }),
+              ],
             ),
 
             if (widget.showControl)
@@ -341,7 +346,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
             //           onTap: () {},
             //           child: const Icon(Icons.zoom_out_map,
             //               color: Color(0xffffffff)))),
-            if (widget.showControl && widget.fromClient && projectInfo != null)
+            if (widget.showControl && widget.fromClient && vtProject != null)
               Positioned(
                   top: 14,
                   child: StreamBuilder(
@@ -352,15 +357,13 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                               await showDialog(
                                 context: context,
                                 builder: (context) => EditProfileProjectDialog(
-                                  projectInfo: projectInfo!,
+                                  projectInfo: vtProject!,
                                 ),
                               ).then((value) {
                                 if (value != null) {
-                                  projectInfo!.changeInfo(
+                                  vtProject!.changeInfo(
                                       title: value["title"],
-                                      description: value["descriptions"],
-                                      author: value["author"],
-                                      location: value["location"]);
+                                      description: value["descriptions"]);
                                   _streamController.add(null);
                                 }
                               });
@@ -374,7 +377,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                               Icons.edit_rounded,
                               color: Color(0xffffffff),
                             ),
-                            label: Text(projectInfo!.title ?? ""));
+                            label: Text(vtProject!.title ?? ""));
                       })),
             if (widget.showControl)
               Positioned(
@@ -409,18 +412,16 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     );
   }
 
-  Widget buildHotspotWidgets(List<Hotspot>? hotspots) {
+  Widget buildHotspotWidgets() {
     final List<Widget> widgets = <Widget>[];
-    if (hotspots != null && scene != null) {
-      for (Hotspot hotspot in hotspots) {
-        hotspot.showControlListenter(widget.showControl);
+    if (vtCurrentImage!.label != null && scene != null) {
+      for (var hotspot in vtCurrentImage!.label!) {
+        // hotspot.showControlListenter(widget.showControl);
         final Vector3 pos = Amz360Utils.shared
-            .positionFromLatLon(scene!, hotspot.latitude, hotspot.longitude);
-        final Offset orgin =
-            Offset(60 * hotspot.orgin.dx, 60 * hotspot.orgin.dy);
+            .positionFromLatLon(scene!, hotspot.x!, hotspot.y!);
+        const Offset orgin = Offset(60 * 0.5, 60 * 0.5);
         final Matrix4 transform = scene!.camera.lookAtMatrix *
-            Amz360Utils.shared
-                .matrixFromLatLon(hotspot.latitude, hotspot.longitude);
+            Amz360Utils.shared.matrixFromLatLon(hotspot.x!, hotspot.y!);
         final Widget child = Positioned(
           left: pos.x - orgin.dx,
           top: pos.y - orgin.dy,
@@ -429,7 +430,22 @@ class _Amz360ScenceState extends State<_Amz360Scence>
             transform: transform..invert(),
             child: Offstage(
               offstage: pos.z < 0,
-              child: hotspot.widget,
+              child: HotspotButton(
+                isShowControl: widget.showControl,
+                callbackEditLable: (p0, p1) {
+                  hotspot.title = p0;
+                  hotspot.text = p1;
+                },
+                icon: hotspot.icon ??
+                    ControlIcon(
+                        child: const Icon(Icons.info,
+                            size: 40, color: Color(0xffffffff))),
+                title: hotspot.title,
+                descriptions: hotspot.text,
+                callbackMovement: (idImage) {
+                  // callbackMovement?.call(idImage, latitude, longitude);
+                },
+              ),
             ),
           ),
         );
@@ -453,50 +469,44 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     if (hotspotWidget != null) {
       _controller.stop();
       Vibrate.vibrate();
-      projectImage!.hotspots!.add(Hotspot(
-          latitude: degrees(-o.y),
-          longitude: degrees(o.x),
-          fromServer: false,
-          title: "Title",
-          description: "This is Descriptions",
-          callbackMovement: (idImage, lat, long) {
-            currentIdImage = idImage;
-            _moveController.forward();
-          },
-          icon: hotspotWidget!));
 
-      if (hotspotWidget!.iconType == IconType.info) {
-        await showDialog(
-          context: context,
-          builder: (context) => EditInfoHotspotDialog(),
-        ).then((value) {
-          _controller.repeat();
-          if (value != null) {
-            projectImage!.hotspots!.last
-                .changeInfo(value["title"], value["descriptions"]);
-            _streamController.add(null);
-          } else {
-            projectImage!.hotspots!.removeLast();
-            _streamController.add(null);
-          }
-        });
-      } else {
-        await showDialog(
-          context: context,
-          builder: (context) => EditMovementHotspotDialog(
-            images: projectInfo!.images!,
-          ),
-        ).then((value) {
-          _controller.repeat();
-          if (value != null) {
-            projectImage!.hotspots!.last.addImage(value);
-            _streamController.add(null);
-          } else {
-            projectImage!.hotspots!.removeLast();
-            _streamController.add(null);
-          }
-        });
-      }
+      _streamController.add(null);
+
+      //if (hotspotWidget!.iconType == IconType.info) {
+      await showDialog(
+        context: context,
+        builder: (context) => EditInfoHotspotDialog(),
+      ).then((value) {
+        _controller.repeat();
+        if (value != null) {
+          vtCurrentImage!.label!.add(VTHotspotLable(
+              x: degrees(-o.y),
+              y: degrees(o.x),
+              title: value["title"],
+              text: value["descriptions"],
+              icon: hotspotWidget));
+          _streamController.add(null);
+        } else {
+          _streamController.add(null);
+        }
+      });
+      // } else {
+      //   await showDialog(
+      //     context: context,
+      //     builder: (context) => EditMovementHotspotDialog(
+      //       images: projectInfo!.images!,
+      //     ),
+      //   ).then((value) {
+      //     _controller.repeat();
+      //     if (value != null) {
+      //       projectImage!.hotspots!.last.addImage(value);
+      //       _streamController.add(null);
+      //     } else {
+      //       projectImage!.hotspots!.removeLast();
+      //       _streamController.add(null);
+      //     }
+      //   });
+      // }
       // showGeneralDialog(
       //   context: context,
       //   useRootNavigator: false,
@@ -576,7 +586,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     scene.camera.fov = 75;
     scene.camera.zoom = widget.zoom;
     scene.camera.position.setFrom(Vector3(0, 0, 0.1));
-    if (widget.fromClient && projectImage != null) {
+    if (widget.fromClient && vtCurrentImage != null) {
       final Mesh mesh = Amz360Utils.shared.generateSphereMesh(
           croppedArea: const Rect.fromLTWH(0.0, 0.0, 1.0, 1.0),
           croppedFullWidth: 1.0,
@@ -586,7 +596,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
       if (widget.imageUrl != null) {
         imageUrl = widget.imageUrl;
       } else {
-        imageUrl = projectImage!.image;
+        imageUrl = vtCurrentImage!.image!.url;
       }
       _loadTexture(Image.network(imageUrl!).image);
       scene.world.add(surface!);
@@ -720,7 +730,8 @@ class Amz360View extends _Amz360Scence {
       Function(double, double, double)? onTap,
       Function(double, double, double)? onViewChanged,
       bool showControl = false})
-      : super(
+      : assert(showControl != true || controlIcons != null),
+        super(
             key: key,
             fromClient: true,
             idProject: id,
