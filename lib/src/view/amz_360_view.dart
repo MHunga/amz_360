@@ -113,13 +113,13 @@ class _Amz360Scence extends StatefulWidget {
 
 class _Amz360ScenceState extends State<_Amz360Scence>
     with TickerProviderStateMixin {
-  final double minLatitude = -90;
+  final double minLatitude = -5000;
 
-  final double maxLatitude = 90;
+  final double maxLatitude = 5000;
 
-  final double minLongitude = -180;
+  final double minLongitude = -5000;
 
-  final double maxLongitude = 180;
+  final double maxLongitude = 5000;
 
   Scene? scene;
   Object? surface;

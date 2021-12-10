@@ -80,22 +80,27 @@ class VTHotspotLable {
         ? null
         : HotspotPosition.fromJson(json["position"]);
     if (_position != null) {
-      print("${_position!.x!}, ${_position!.y!}, ${_position!.z!}");
+      print("$title [${_position!.x!}, ${_position!.y!}, ${_position!.z!}]");
       if (_position!.z! > 0) {
         if (_position!.x! > 0) {
-          x = -(90 * (5000 - _position!.x!) / 5000);
+          x = -(90 * (5000 - _position!.x!) / 5000) ;
+          x = x! + 60 *  (95-x!) /360;
         } else {
           x = -(90 * (5000 - _position!.x!) / 5000);
+          x = x! - 60 *  (95-x!) /360;
         }
       } else {
         if (_position!.x! > 0) {
-          x = 90 * (5000 - _position!.x! + 200) / 5000 + 5;
+          x = 90 * (5000 - _position!.x!) / 5000;
+         // x = x! + 60 *  (95-x!) /360;
           print(x);
         } else {
-          x = 90 * (5000 - _position!.x!) / 5000 + 5;
+          x = 90 * (5000 - _position!.x!) / 5000 ;
+          x = x! - 60 *  (95-x!) /360;
         }
       }
-      y = (_position!.y!) * 90 / 5000;
+      y = (_position!.y!) * 90 / 5000 ;
+      y = y! - 35 *  y! /90;
     } else {
       x = 0.0;
       y = 0.0;
