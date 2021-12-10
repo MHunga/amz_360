@@ -130,7 +130,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   double zoomDelta = 0;
   late Offset _lastFocalPoint;
   double? _lastZoom;
-  final double _radius = 500;
+  final double _radius = 5000;
   final double _dampingFactor = 0.05;
   final double _animateDirection = 1.0;
   late AnimationController _controller;
@@ -417,11 +417,12 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     if (vtCurrentImage!.label != null && scene != null) {
       for (var hotspot in vtCurrentImage!.label!) {
         // hotspot.showControlListenter(widget.showControl);
+        // print("HOTSPOT [${hotspot.x},${hotspot.y}]");
         final Vector3 pos = Amz360Utils.shared
-            .positionFromLatLon(scene!, hotspot.x!, hotspot.y!);
-        const Offset orgin = Offset(60 * 0.5, 60 * 0.5);
+            .positionFromLatLon(scene!, hotspot.y!, hotspot.x!);
+        const Offset orgin = Offset(40 * .5, 40 * .5);
         final Matrix4 transform = scene!.camera.lookAtMatrix *
-            Amz360Utils.shared.matrixFromLatLon(hotspot.x!, hotspot.y!);
+            Amz360Utils.shared.matrixFromLatLon(hotspot.y!, hotspot.x!);
         final Widget child = Positioned(
           left: pos.x - orgin.dx,
           top: pos.y - orgin.dy,
@@ -460,6 +461,28 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         scene!, details.localPosition.dx, details.localPosition.dy);
     if (widget.onTap != null) {
       widget.onTap!(degrees(o.x), degrees(-o.y), degrees(o.z));
+      final x = degrees(o.x);
+      final y = degrees(-o.y);
+      double px = 0;
+      double py = 0;
+      double pz = 0;
+      if (x > 0) {
+        pz = -5000;
+        if (x < 90) {
+          px = (85 - x) * 5000 / 95;
+        } else {
+          px = -(85 - x) * 5000 / 95;
+        }
+      } else {
+        pz = 5000;
+        if (x > -90) {
+          px = (85 + x) * 5000 / 95;
+        } else {
+          px = -(85 + x) * 5000 / 95;
+        }
+      }
+      py = y * 5000 / 90;
+      print("$px     $py     $pz");
     }
   }
 
@@ -476,15 +499,22 @@ class _Amz360ScenceState extends State<_Amz360Scence>
       await showDialog(
         context: context,
         builder: (context) => EditInfoHotspotDialog(),
-      ).then((value) {
+      ).then((value) async {
         _controller.repeat();
         if (value != null) {
           vtCurrentImage!.label!.add(VTHotspotLable(
-              x: degrees(-o.y),
-              y: degrees(o.x),
+              x: degrees(o.x),
+              y: degrees(-o.y),
               title: value["title"],
               text: value["descriptions"],
               icon: hotspotWidget));
+          await Amz360.instance.addHotspotLable(
+              imageId: currentIdImage,
+              title: value["title"],
+              text: value["descriptions"],
+              x: degrees(o.x),
+              y: degrees(-o.y),
+              z: degrees(o.z));
           _streamController.add(null);
         } else {
           _streamController.add(null);

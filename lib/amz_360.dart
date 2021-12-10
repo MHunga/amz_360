@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:amz_360/src/models/response_vt_list_project.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
+import 'package:amz_360/src/models/vt_hotspot.dart';
 import 'package:amz_360/src/service/api_service.dart';
 
 class Amz360 {
@@ -57,9 +58,34 @@ class Amz360 {
   edit() {}
 
   //
-  Future<ResponseVtProject> delete(int id) async {
+  Future<ResponseVtProject> deleteProject(int id) async {
     if (_apiKey != null) {
-      return await api.delete(apikey: _apiKey!, id: id);
+      return await api.deleteProject(apikey: _apiKey!, id: id);
+    } else {
+      throw Exception("Please set client with apikey");
+    }
+  }
+
+  Future<VTHotspotLable> addHotspotLable(
+      {required int imageId,
+      required String title,
+      required String text,
+      required double x,
+      required double y,
+      required double z}) async {
+    if (_apiKey != null) {
+      return await api.addHospotLable(
+        apiKey: _apiKey!,
+        imageId: imageId,
+        title: title,
+        x: x,
+        y: y,
+        z: z,
+        text: text,
+        onSuccess: () {
+          print("Done");
+        },
+      );
     } else {
       throw Exception("Please set client with apikey");
     }

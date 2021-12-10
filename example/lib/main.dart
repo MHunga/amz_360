@@ -54,26 +54,25 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await _picker.pickMultiImage().then((value)async{
+          await _picker.pickMultiImage().then((value) async {
             if (value != null) {
               for (var item in value) {
                 lisfile.add(File(item.path));
               }
-               await Amz360.instance
-              .create(
-            title: "Titlexxxđasasssxx",
-            descrition: "Descriptionssss",
-            images: lisfile,
-            progressCallback: (sentBytes, totalBytes) {
-              print("Progress: $sentBytes/$totalBytes");
-            },
-          )
-              .then((value) {
-            setState(() {});
-          });
+              await Amz360.instance
+                  .create(
+                title: "Titlexxxđasasssxx",
+                descrition: "Descriptionssss",
+                images: lisfile,
+                progressCallback: (sentBytes, totalBytes) {
+                  print("Progress: $sentBytes/$totalBytes");
+                },
+              )
+                  .then((value) {
+                setState(() {});
+              });
             }
           });
-         
         },
         child: const Icon(Icons.add),
       ),
@@ -94,8 +93,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder:  (_)=> ViewVR(id: list[index].id!)));
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => ViewVR(id: list[index].id!)));
                         },
                         child: AspectRatio(
                           aspectRatio: 16 / 9,
@@ -124,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             TextButton.styleFrom(backgroundColor: Colors.red),
                         onPressed: () async {
                           await Amz360.instance
-                              .delete(list[index].id!)
+                              .deleteProject(list[index].id!)
                               .then((value) {
                             setState(() {});
                           });
@@ -147,29 +149,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class ViewVR extends StatelessWidget {
   final int id;
-  const ViewVR({ Key? key, required this.id }) : super(key: key);
+  const ViewVR({Key? key, required this.id}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(child: Amz360View.client(
-            id: id,
-            autoRotationSpeed: 0.0,
-            enableSensorControl: true,
-            showControl: true,
-            controlIcons: [
-              ControlIcon(
-                  child: Image.asset("assets/info.png", width: 24, height: 24)),
-              ControlIcon(
-                  child: const Icon(Icons.location_on, color: Colors.white)),
-            ],
-            onTap: (long, lat, t) {
-              log("$long   $lat, $t");
-            },
-            onLongPressStart: (long, lat, t) {
-              log("$long   $lat, $t");
-            },
-          ),),
+      body: SafeArea(
+        child: Amz360View.client(
+          id: id,
+          autoRotationSpeed: 0.0,
+          enableSensorControl: true,
+          showControl: true,
+          controlIcons: [
+            ControlIcon(
+                child: Image.asset("assets/info.png", width: 24, height: 24)),
+            ControlIcon(
+                child: const Icon(Icons.location_on, color: Colors.white)),
+          ],
+          onTap: (long, lat, t) {
+            log("$long   $lat, $t");
+          },
+          onLongPressStart: (long, lat, t) {
+            log("$long   $lat, $t");
+          },
+        ),
+      ),
     );
   }
 }
