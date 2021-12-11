@@ -117,6 +117,13 @@ class VTHotspotLable {
     data["image_id"] = imageId;
     return data;
   }
+
+  convertX(double px, double pz) {
+    double x = 0.0;
+    if (px < 5000 && px >= 4900) {
+      x = (5000 - px) / 10;
+    }
+  }
 }
 
 class HotspotPosition {
