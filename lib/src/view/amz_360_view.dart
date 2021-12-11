@@ -113,13 +113,13 @@ class _Amz360Scence extends StatefulWidget {
 
 class _Amz360ScenceState extends State<_Amz360Scence>
     with TickerProviderStateMixin {
-  final double minLatitude = -5000;
+  final double minLatitude = -90;
 
-  final double maxLatitude = 5000;
+  final double maxLatitude = 90;
 
-  final double minLongitude = -5000;
+  final double minLongitude = -180;
 
-  final double maxLongitude = 5000;
+  final double maxLongitude = 180;
 
   Scene? scene;
   Object? surface;
@@ -612,8 +612,8 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   void _onSceneCreated(Scene scene) {
     this.scene = scene;
     scene.camera.near = 1.0;
-    scene.camera.far = _radius + 1.0;
-    scene.camera.fov = 75;
+    scene.camera.far = _radius + 10.0;
+    scene.camera.fov = 60;
     scene.camera.zoom = widget.zoom;
     scene.camera.position.setFrom(Vector3(0, 0, 0.1));
     if (widget.fromClient && vtCurrentImage != null) {
