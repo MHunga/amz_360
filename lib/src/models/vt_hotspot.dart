@@ -81,26 +81,27 @@ class VTHotspotLable {
         : HotspotPosition.fromJson(json["position"]);
     if (_position != null) {
       print("$title [${_position!.x!}, ${_position!.y!}, ${_position!.z!}]");
-      if (_position!.z! > 0) {
-        if (_position!.x! > 0) {
-          x = -(90 * (5000 - _position!.x!) / 5000);
-          x = x! + 60 * (95 - x!) / 360;
-        } else {
-          x = -(90 * (5000 - _position!.x!) / 5000);
-          x = x! - 60 * (95 - x!) / 360;
-        }
-      } else {
-        if (_position!.x! > 0) {
-          x = 90 * (5000 - _position!.x!) / 5000;
-          x = x! + 60 * (95 - x!) / 360;
-          print(x);
-        } else {
-          x = 90 * (5000 - _position!.x!) / 5000;
-          x = x! - 60 * (95 - x!) / 360;
-        }
-      }
+      // if (_position!.z! > 0) {
+      //   if (_position!.x! > 0) {
+      //     x = -(90 * (5000 - _position!.x!) / 5000);
+      //     x = x! + 60 * (95 - x!) / 360;
+      //   } else {
+      //     x = -(90 * (5000 - _position!.x!) / 5000);
+      //     x = x! - 60 * (95 - x!) / 360;
+      //   }
+      // } else {
+      //   if (_position!.x! > 0) {
+      //     x = 90 * (5000 - _position!.x!) / 5000;
+      //     x = x! + 60 * (95 - x!) / 360;
+      //     print(x);
+      //   } else {
+      //     x = 90 * (5000 - _position!.x!) / 5000;
+      //     x = x! - 60 * (95 - x!) / 360;
+      //   }
+      // }
+      x = convertX(_position!.x!, _position!.z!);
       y = (_position!.y!) * 90 / 5000;
-      y = y! - 35 * y! / 90;
+     // y = y! - 35 * y! / 90;
     } else {
       x = 0.0;
       y = 0.0;
@@ -118,11 +119,55 @@ class VTHotspotLable {
     return data;
   }
 
-  convertX(double px, double pz) {
+  double convertX(double px, double pz) {
     double x = 0.0;
-    if (px < 5000 && px >= 4900) {
-      x = (5000 - px) / 10;
+    double z = 1;
+    if(pz >0) z = -1;
+    if (px < 4990 && px >= 4900) {
+      x = recipe(0, px, 5000, 4900);
+    }else if(px < 4900 && px >= 4680){
+      x = recipe(10*z, px, 4900, 4680);
+    }else if(px < 4680 && px>= 4240){
+      x = recipe(20*z, px, 4680, 4240);
+    }else if(px < 4240 && px >= 3750){
+      x = recipe(30*z, px, 4240, 3750);
+    }else if(px < 3750 && px >= 3180){
+      x = recipe(40*z, px, 3750, 3180);
+    }else if (px < 3180 && px >= 2400){
+      x = recipe(50*z, px, 3180, 2400);
+    }else if(px < 2400 && px>= 1600){
+      x = recipe(60*z, px, 2400, 1600);
+    }else if (px < 1600 && px >= 800){
+      x = recipe(70*z, px, 1600, 800);
+    }else if(px < 800 && px >= 0){
+      x = recipe(80*z, px, 800, 0);
     }
+    
+    else if(px < 0 && px >= -800){
+      x = recipe(90*z, px, 0 , -800);
+    }else if (px < -800 && px >= -1600){
+      x = recipe(100*z, px, -800, -1600);
+    }else if(px < -1600 && px>= -2400){
+      x = recipe(110*z, px, -1600, -2400);
+    }else if(px < -2400 && px>= -3180){
+      x = recipe(120*z, px, -2400, -3180);
+    }else if(px < -3180 && px>= -3750){
+      x = recipe(130*z, px, -3180, -3750);
+    }else if(px < -3750 && px>= -4240){
+      x = recipe(140*z, px, -3750, -4240);
+    }else if(px < -4240 && px>= -4680){
+      x = recipe(150*z, px, -4240, -4680);
+    }else if(px < -4680 && px>= -4900){
+      x = recipe(160*z, px, -4680, -4900);
+    }else if(px < -4900 && px>= -5000){
+      x = recipe(170*z, px, -4900, -5000);
+    }
+    if(pz >0) x = x* -1;
+    return x;
+  }
+
+  double recipe(double start,double px, double from, double to){
+    return (from -px) * 10 / (from - to) + start;
   }
 }
 
