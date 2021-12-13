@@ -12,7 +12,7 @@ AMZ 360 is a plugin that provides a 360 degree image visualizer in Flutter.
 
 In `pubspec.yaml` add to `dependencies`:
 
-```
+```yaml
 dependencies:
     amz_360:
         git:
@@ -22,13 +22,15 @@ dependencies:
 
 # Import
 
-`import 'package:amz_360/amz_360.dart';`
+```dart
+import 'package:amz_360/amz_360.dart';
+```
 
 # Usage
 
 * To display 360 image from assets
 
-``` 
+```dart
 Amz360View.asset(
           imageAsset: "assets/images/panorama.jpeg", // Link from assets
           autoRotationSpeed: 1,
@@ -39,7 +41,7 @@ Amz360View.asset(
 
 * To display 360 image from url
 
-```
+```dart
 Amz360View.url(
           imageUrl: "https://cdn.eso.org/images/publicationjpg/ESO_Hotel_Paranal_360_Marcio_Cabral_Chile_02-CC.jpg",
           autoRotationSpeed: 1,
@@ -56,7 +58,7 @@ Amz360View.url(
 
 3. Set `apiKey` to client
 
-```
+```dart
 void main() {
   Amz360.instance.setClient("your-api-key");
   runApp(const MyApp());
@@ -64,7 +66,7 @@ void main() {
 ```
 4. To create new project:
 
-```
+```dart
 await Amz360.instance
                   .create(
                 title: "This is title of project",
@@ -78,14 +80,14 @@ await Amz360.instance
 
 5. To get all created projects on your account:
 
-```
+```dart
 final data = await Amz360.instance.getListProject();
 print(data!.data![0].id);
 ```
 
 6. To display a created project
 
-```
+```dart
 Amz360View.client(
           id: id, // Id of project
           autoRotationSpeed: 0.0,
