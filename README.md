@@ -106,11 +106,11 @@ Amz360View.client(
         ),
 ```
 
-7. Add Hotspot to project: (on Beta - synchronized Hotspot's Positions from Flutter Plugin to Web Plugin)
+7. Add Hotspot to project: (This feature is on Beta - synchronized Hotspot's Positions from Flutter Plugin to Web Plugin)
     
     - Make sure `showControl : true` ,
       
-      and `controlIcons` has children 
+      and `controlIcons` has children ,
       For example: 
       ```dart
         controlIcons: [
