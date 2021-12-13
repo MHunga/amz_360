@@ -106,6 +106,31 @@ Amz360View.client(
         ),
 ```
 
+7. Add Hotspot to project: (on Beta - synchronized Hotspot's Positions from Flutter Plugin to Web Plugin)
+    
+    - Make sure `showControl : true` ,
+      
+      and `controlIcons` has children 
+      For example: 
+      ```dart
+        controlIcons: [
+            ControlIcon(
+                child: Image.asset("assets/info.png", width: 24, height: 24)),
+          ],
+      ```
+
+    - Tap Menu Icon to show the ControlIcon
+
+    - Select the ControlIcon
+
+    - Press and Hold on the pixel of image. It show the dialog to type the info of Hotspot. 
+
+    - Press OK to save.
+
+    * This feature is on Beta
+
+
+
 # Basic properties
 
 | Properties          | Value              |                                                |

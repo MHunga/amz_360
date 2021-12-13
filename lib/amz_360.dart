@@ -10,6 +10,8 @@ import 'package:amz_360/src/models/response_vt_list_project.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:amz_360/src/service/api_service.dart';
 
+import 'src/models/vt_hotspot.dart';
+
 class Amz360 {
   static final Amz360 instance = Amz360();
   String? _apiKey;
@@ -65,28 +67,28 @@ class Amz360 {
     }
   }
 
-  // Future<VTHotspotLable> addHotspotLable(
-  //     {required int imageId,
-  //     required String title,
-  //     required String text,
-  //     required double x,
-  //     required double y,
-  //     required double z}) async {
-  //   if (_apiKey != null) {
-  //     return await api.addHospotLable(
-  //       apiKey: _apiKey!,
-  //       imageId: imageId,
-  //       title: title,
-  //       x: x,
-  //       y: y,
-  //       z: z,
-  //       text: text,
-  //       onSuccess: () {
-  //         print("Done");
-  //       },
-  //     );
-  //   } else {
-  //     throw Exception("Please set client with apikey");
-  //   }
-  // }
+  Future<VTHotspotLable> addHotspotLable(
+      {required int imageId,
+      required String title,
+      required String text,
+      required double x,
+      required double y,
+      required double z}) async {
+    if (_apiKey != null) {
+      return await api.addHospotLable(
+        apiKey: _apiKey!,
+        imageId: imageId,
+        title: title,
+        x: x,
+        y: y,
+        z: z,
+        text: text,
+        onSuccess: () {
+          print("Done");
+        },
+      );
+    } else {
+      throw Exception("Please set client with apikey");
+    }
+  }
 }
