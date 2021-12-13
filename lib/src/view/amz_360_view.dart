@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:amz_360/amz_360.dart';
-import 'package:amz_360/src/models/project_info.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:amz_360/src/models/vt_hotspot.dart';
 import 'package:amz_360/src/scene/mesh.dart';
@@ -20,7 +18,6 @@ import 'package:amz_360/src/scene/object.dart';
 
 import 'control_chervon_painter.dart';
 import 'edit_hotspot_dialog.dart';
-import '../models/hotspot.dart';
 import 'hotspot_button.dart';
 import 'menu_control.dart';
 

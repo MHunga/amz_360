@@ -1,4 +1,3 @@
-import 'package:amz_360/src/models/project_info.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';

@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:amz_360/src/models/response_vt_list_project.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
-import 'package:amz_360/src/models/vt_hotspot.dart';
 import 'package:amz_360/src/service/api_service.dart';
 
 class Amz360 {
