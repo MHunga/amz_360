@@ -482,7 +482,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         }
       }
       py = y * 5000 / 90;
-      print("$px     $py     $pz");
+      //print("$px     $py     $pz");
     }
   }
 
@@ -508,13 +508,13 @@ class _Amz360ScenceState extends State<_Amz360Scence>
               title: value["title"],
               text: value["descriptions"],
               icon: hotspotWidget));
-          await Amz360.instance.addHotspotLable(
-              imageId: currentIdImage,
-              title: value["title"],
-              text: value["descriptions"],
-              x: degrees(o.x),
-              y: degrees(-o.y),
-              z: degrees(o.z));
+          // await Amz360.instance.addHotspotLable(
+          //     imageId: currentIdImage,
+          //     title: value["title"],
+          //     text: value["descriptions"],
+          //     x: degrees(o.x),
+          //     y: degrees(-o.y),
+          //     z: degrees(o.z));
           _streamController.add(null);
         } else {
           _streamController.add(null);

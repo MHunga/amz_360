@@ -55,7 +55,7 @@ class Amz360 {
   }
 
   //
-  edit() {}
+  //edit() {}
 
   //
   Future<ResponseVtProject> deleteProject(int id) async {
@@ -66,28 +66,28 @@ class Amz360 {
     }
   }
 
-  Future<VTHotspotLable> addHotspotLable(
-      {required int imageId,
-      required String title,
-      required String text,
-      required double x,
-      required double y,
-      required double z}) async {
-    if (_apiKey != null) {
-      return await api.addHospotLable(
-        apiKey: _apiKey!,
-        imageId: imageId,
-        title: title,
-        x: x,
-        y: y,
-        z: z,
-        text: text,
-        onSuccess: () {
-          print("Done");
-        },
-      );
-    } else {
-      throw Exception("Please set client with apikey");
-    }
-  }
+  // Future<VTHotspotLable> addHotspotLable(
+  //     {required int imageId,
+  //     required String title,
+  //     required String text,
+  //     required double x,
+  //     required double y,
+  //     required double z}) async {
+  //   if (_apiKey != null) {
+  //     return await api.addHospotLable(
+  //       apiKey: _apiKey!,
+  //       imageId: imageId,
+  //       title: title,
+  //       x: x,
+  //       y: y,
+  //       z: z,
+  //       text: text,
+  //       onSuccess: () {
+  //         print("Done");
+  //       },
+  //     );
+  //   } else {
+  //     throw Exception("Please set client with apikey");
+  //   }
+  // }
 }
