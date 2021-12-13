@@ -1,4 +1,4 @@
-# AMZ 360 [![AmazinPro][cult-img]][cult]
+# AMZ 360 [![AmazinPro]]
 
 AMZ 360 is a plugin that provides a 360 degree image visualizer in Flutter.
 
