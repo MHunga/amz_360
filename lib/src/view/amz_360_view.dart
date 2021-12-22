@@ -509,9 +509,11 @@ class _Amz360ScenceState extends State<_Amz360Scence>
               imageId: currentIdImage,
               title: value["title"],
               text: value["descriptions"],
-              x: degrees(o.x),
-              y: degrees(-o.y),
-              z: degrees(o.z));
+              x: Amz360Utils.shared
+                  .convertXtoServer(degrees(o.x), degrees(-o.y)),
+              y: Amz360Utils.shared
+                  .convertYtoServer(degrees(o.x), degrees(-o.y)),
+              z: Amz360Utils.shared.convertZtoServer(degrees(o.x)));
           _streamController.add(null);
         } else {
           _streamController.add(null);

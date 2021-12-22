@@ -119,4 +119,67 @@ class Amz360Utils {
         texture: texture);
     return mesh;
   }
+
+  double convertXfromServer(double sx, double sy, double sz) {
+    print('[$sx , $sy, $sz]');
+    double delta = math.sqrt((math.pow(sx, 2) + math.pow(sy, 2))) / sz;
+    double rx = math.atan(delta);
+    //double rx = math.atan(sy / sx);
+    print(degrees(rx));
+    if (sx < 0 && sz < 0) {
+      return 90 - degrees(rx);
+    }
+    if (sx < 0 && sz > 0) {
+      return -degrees(rx) - 90;
+    }
+    return degrees(rx) + 90;
+  }
+
+  double convertYfromServer(double sx, double sy, double sz) {
+    // if (sx > 0) {
+    //   double ry = math.atan2(sy, sx);
+    //   if (sy > sx) {
+    //     ry = math.atan2(sx, sy);
+    //   }
+    //   print(degrees(ry));
+    //   return degrees(ry);
+    // } else if (sx < 0) {
+    //   double ry = math.atan2(sy, sx);
+    //   print(degrees(ry));
+    //   return degrees(ry);
+    // } else {
+    //   return 90;
+    // }
+    if (sy > 0) {
+      double delta = math.sqrt((math.pow(sx, 2) + math.pow(sz, 2))) / sy;
+      double ry = math.atan(delta);
+      print(degrees(ry));
+      return 90 - degrees(ry);
+    } else if (sy < 0) {
+      double delta = (math.sqrt((math.pow(sx, 2) + math.pow(sz, 2)))) / sy;
+      double ry = math.atan(delta);
+      print(degrees(ry));
+      return degrees(ry);
+    } else {
+      return 90;
+    }
+    //return 90 * sy / 5000;
+  }
+
+  double convertXtoServer(double cx, double cy) {
+    double rx = radians(cx - 90);
+    double ry = radians(cy);
+    return 5000 * math.cos(ry) * math.sin(rx);
+  }
+
+  double convertYtoServer(double cx, double cy) {
+    double rx = radians(cx - 90);
+    double ry = radians(cy);
+    return 5000 * math.sin(ry) * math.sin(rx);
+  }
+
+  double convertZtoServer(double cx) {
+    double rx = radians(cx - 90);
+    return 5000 * math.cos(rx);
+  }
 }
