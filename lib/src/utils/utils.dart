@@ -121,65 +121,65 @@ class Amz360Utils {
   }
 
   double convertXfromServer(double sx, double sy, double sz) {
-    print('[$sx , $sy, $sz]');
-    double delta = math.sqrt((math.pow(sx, 2) + math.pow(sy, 2))) / sz;
-    double rx = math.atan(delta);
-    //double rx = math.atan(sy / sx);
-    print(degrees(rx));
-    if (sx < 0 && sz < 0) {
-      return 90 - degrees(rx);
-    }
-    if (sx < 0 && sz > 0) {
-      return -degrees(rx) - 90;
-    }
-    return degrees(rx) + 90;
+    print("[$sx , $sy , $sz]");
+    double rx = math.atan2(sz, sx);
+    return -degrees(rx);
   }
 
   double convertYfromServer(double sx, double sy, double sz) {
-    // if (sx > 0) {
-    //   double ry = math.atan2(sy, sx);
-    //   if (sy > sx) {
-    //     ry = math.atan2(sx, sy);
-    //   }
-    //   print(degrees(ry));
-    //   return degrees(ry);
-    // } else if (sx < 0) {
-    //   double ry = math.atan2(sy, sx);
-    //   print(degrees(ry));
-    //   return degrees(ry);
-    // } else {
-    //   return 90;
-    // }
     if (sy > 0) {
       double delta = math.sqrt((math.pow(sx, 2) + math.pow(sz, 2))) / sy;
-      double ry = math.atan(delta);
-      print(degrees(ry));
-      return 90 - degrees(ry);
+      double ry = math.pi / 2 - math.atan(delta);
+      return degrees(ry);
     } else if (sy < 0) {
       double delta = (math.sqrt((math.pow(sx, 2) + math.pow(sz, 2)))) / sy;
-      double ry = math.atan(delta);
-      print(degrees(ry));
+      double ry = -math.pi / 2 - math.atan(delta);
       return degrees(ry);
     } else {
       return 90;
     }
-    //return 90 * sy / 5000;
   }
 
   double convertXtoServer(double cx, double cy) {
-    double rx = radians(cx - 90);
+    double rx = radians(-cx);
     double ry = radians(cy);
-    return 5000 * math.cos(ry) * math.sin(rx);
+    if (cy > 0) {
+      ry = math.pi / 2 - ry;
+    } else {
+      ry = -math.pi / 2 - ry;
+    }
+    final x = 4999 * math.cos(rx) * math.sin(ry);
+    if (cx > 0 && cx <= 90 || cx < 0 && cx >= -90) {
+      return x.abs();
+    } else {
+      return -x.abs();
+    }
   }
 
-  double convertYtoServer(double cx, double cy) {
-    double rx = radians(cx - 90);
+  double convertYtoServer(double cy) {
     double ry = radians(cy);
-    return 5000 * math.sin(ry) * math.sin(rx);
+    if (cy > 0) {
+      ry = math.pi / 2 - ry;
+      return (4999 * math.cos(ry)).abs();
+    } else {
+      ry = -math.pi / 2 - ry;
+      return -(4999 * math.cos(ry)).abs();
+    }
   }
 
-  double convertZtoServer(double cx) {
-    double rx = radians(cx - 90);
-    return 5000 * math.cos(rx);
+  double convertZtoServer(double cx, double cy) {
+    double rx = radians(-cx);
+    double ry = radians(cy);
+    if (cy > 0) {
+      ry = math.pi / 2 - ry;
+    } else {
+      ry = -math.pi / 2 - ry;
+    }
+    final z = 4999 * math.sin(rx) * math.sin(ry);
+    if (cx > 0) {
+      return -z.abs();
+    } else {
+      return z.abs();
+    }
   }
 }

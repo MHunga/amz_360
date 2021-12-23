@@ -161,10 +161,7 @@ class ViewVR extends StatelessWidget {
           enableSensorControl: true,
           showControl: true,
           controlIcons: [
-            ControlIcon(
-                child: Image.asset("assets/info.png", width: 24, height: 24)),
-            ControlIcon(
-                child: const Icon(Icons.location_on, color: Colors.white)),
+            ControlIcon(child: const Icon(Icons.info, color: Colors.white)),
           ],
           onTap: (long, lat, t) {
             log("$long   $lat, $t");

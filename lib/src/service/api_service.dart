@@ -128,31 +128,11 @@ class ApiService {
       //List<File>? images,
       OnSuccess? onSuccess,
       OnError? onError}) async {
-    double px = 0.0;
-    double py = 0.0;
-    double pz = 0.0;
     final map = <String, dynamic>{};
     map['title'] = title;
-    if (x > 0) {
-      pz = -2500;
-      if (x < 90) {
-        px = (95 - x) * 5000 / 85;
-      } else {
-        px = -(95 - x) * 5000 / 85;
-      }
-    } else {
-      pz = 2500;
-      if (x > -90) {
-        px = (95 + x) * 5000 / 85;
-      } else {
-        px = -(95 + x) * 5000 / 85;
-      }
-    }
-    py = y * 5000 / 90;
-
-    map['positions_x'] = "$px";
-    map['positions_y'] = "$py";
-    map['positions_z'] = "$pz";
+    map['positions_x'] = x.toStringAsFixed(2);
+    map['positions_y'] = y.toStringAsFixed(2);
+    map['positions_z'] = z.toStringAsFixed(2);
     //if (text != null) {
     map['text'] = text;
     // } else {
@@ -167,10 +147,10 @@ class ApiService {
       final data = jsonDecode(response.toString());
       if (data['status'] == "success") {
         if (onSuccess != null) onSuccess();
-        data['data']['position'] = {
-          'x': data['data']['x'],
-          'y': data['data']['y'],
-          'z': data['data']['z'],
+        data['data']['positions'] = {
+          'x': data['positions_x'],
+          'y': data['positions_y'],
+          'z': data['positions_z'],
         };
         return VTHotspotLable.fromJson(data["data"]);
       } else {

@@ -91,4 +91,13 @@ class Amz360 {
       throw Exception("Please set client with apikey");
     }
   }
+
+  Future<bool> deleteHotspotLable(int imageId, int hotspotId) async {
+    if (_apiKey != null) {
+      return await api.deleteHotspotLable(
+          apikey: _apiKey!, imageId: imageId, hotspotId: hotspotId);
+    } else {
+      throw Exception("Please set client with apikey");
+    }
+  }
 }

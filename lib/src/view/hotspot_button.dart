@@ -1,8 +1,8 @@
+import 'dart:async';
+
 import 'package:amz_360/src/view/menu_control.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import 'edit_hotspot_dialog.dart';
 
 // ignore: must_be_immutable
 class HotspotButton extends StatefulWidget {
@@ -15,15 +15,17 @@ class HotspotButton extends StatefulWidget {
     this.callbackMovement,
     this.idImage,
     this.isShowControl = false,
-    this.callbackEditLable,
+    this.callbackDeleteLable,
+    this.imageUrl,
   }) : super(key: key);
   final ControlIcon icon;
   final Function()? onPressed;
   final String? title;
   final String? descriptions;
+  final String? imageUrl;
   final int? idImage;
   final Function(int)? callbackMovement;
-  final Function(String, String)? callbackEditLable;
+  final Function()? callbackDeleteLable;
   bool isShowControl;
 
   @override
@@ -35,6 +37,7 @@ class _HotspotButtonState extends State<HotspotButton>
   bool isShowInfo = false;
   late AnimationController controller;
   late Animation<double> scaleAnimation;
+  StreamController<bool> showDeleteController = StreamController.broadcast();
   @override
   void initState() {
     super.initState();
@@ -69,7 +72,7 @@ class _HotspotButtonState extends State<HotspotButton>
                         const BoxConstraints(maxWidth: 250, minWidth: 100),
                     margin: const EdgeInsets.only(top: 5, left: 10),
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Colors.black87,
                         borderRadius: BorderRadius.circular(10)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -82,35 +85,23 @@ class _HotspotButtonState extends State<HotspotButton>
                             children: [
                               Text(widget.title ?? "",
                                   style: const TextStyle(
+                                      color: Colors.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600)),
                               const SizedBox(height: 10),
-                              Text(widget.descriptions ?? "",
-                                  style: const TextStyle(fontSize: 14)),
+                              if (widget.descriptions != null)
+                                Text(widget.descriptions ?? "",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                    )),
+                              if (widget.imageUrl != null)
+                                ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(widget.imageUrl!))
                             ],
                           ),
                         ),
-                        if (widget.isShowControl)
-                          InkWell(
-                            onTap: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => EditInfoHotspotDialog(),
-                              ).then((value) {
-                                if (widget.callbackEditLable != null) {
-                                  widget.callbackEditLable!(
-                                      value['title'], value['descriptions']);
-                                }
-                              });
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Icon(
-                                Icons.edit,
-                                size: 16,
-                              ),
-                            ),
-                          )
                       ],
                     )),
               ),
@@ -119,26 +110,54 @@ class _HotspotButtonState extends State<HotspotButton>
     );
   }
 
+  Widget delete() {
+    return ElevatedButton(
+        style: TextButton.styleFrom(
+            backgroundColor: Colors.redAccent.withOpacity(0.7)),
+        onPressed: widget.callbackDeleteLable,
+        child: const Icon(Icons.delete, size: 16));
+  }
+
   Widget button() {
-    return TextButton(
-      style: ButtonStyle(
-        padding: MaterialStateProperty.all(EdgeInsets.zero),
-        shape: MaterialStateProperty.all(const CircleBorder()),
-        // backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-        foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
-      ),
-      child: widget.icon.child,
-      onPressed: () {
-        if (widget.icon.iconType == IconType.movement) {
-          widget.callbackMovement!(widget.idImage!);
-        } else {
-          if (controller.isCompleted) {
-            controller.reverse();
-          } else {
-            controller.forward();
-          }
-        }
-      },
+    return Row(
+      children: [
+        TextButton(
+          style: ButtonStyle(
+            padding: MaterialStateProperty.all(EdgeInsets.zero),
+            shape: MaterialStateProperty.all(const CircleBorder()),
+            // backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+            foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+          ),
+          child: widget.icon.child,
+          onLongPress: () {
+            showDeleteController.add(true);
+          },
+          onPressed: () {
+            showDeleteController.add(false);
+            if (widget.icon.iconType == IconType.movement) {
+              widget.callbackMovement!(widget.idImage!);
+            } else {
+              if (controller.isCompleted) {
+                controller.reverse();
+              } else {
+                controller.forward();
+              }
+            }
+          },
+        ),
+        if (widget.isShowControl)
+          StreamBuilder<bool>(
+            initialData: false,
+            stream: showDeleteController.stream,
+            builder: (context, snapshot) {
+              if (snapshot.data!) {
+                return delete();
+              } else {
+                return const SizedBox();
+              }
+            },
+          )
+      ],
     );
   }
 }

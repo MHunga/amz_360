@@ -417,7 +417,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         // print("HOTSPOT [${hotspot.x},${hotspot.y}]");
         final Vector3 pos = Amz360Utils.shared
             .positionFromLatLon(scene!, hotspot.y!, hotspot.x!);
-        const Offset orgin = Offset(40 * .5, 40 * .5);
+        const Offset orgin = Offset(30, 25);
         final Matrix4 transform = scene!.camera.lookAtMatrix *
             Amz360Utils.shared.matrixFromLatLon(hotspot.y!, hotspot.x!);
         final Widget child = Positioned(
@@ -430,16 +430,23 @@ class _Amz360ScenceState extends State<_Amz360Scence>
               offstage: pos.z < 0,
               child: HotspotButton(
                 isShowControl: widget.showControl,
-                callbackEditLable: (p0, p1) {
-                  hotspot.title = p0;
-                  hotspot.text = p1;
+                callbackDeleteLable: () async {
+                  await Amz360.instance
+                      .deleteHotspotLable(hotspot.imageId!, hotspot.id!)
+                      .then((value) {
+                    if (value) {
+                      vtCurrentImage!.label!
+                          .removeWhere((element) => element.id == hotspot.id);
+                    }
+                  });
                 },
                 icon: hotspot.icon ??
                     ControlIcon(
-                        child: const Icon(Icons.info,
-                            size: 40, color: Color(0xffffffff))),
+                        child:
+                            const Icon(Icons.info, color: Color(0xffffffff))),
                 title: hotspot.title,
                 descriptions: hotspot.text,
+                imageUrl: hotspot.imageUrl,
                 callbackMovement: (idImage) {
                   // callbackMovement?.call(idImage, latitude, longitude);
                 },
@@ -458,28 +465,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         scene!, details.localPosition.dx, details.localPosition.dy);
     if (widget.onTap != null) {
       widget.onTap!(degrees(o.x), degrees(-o.y), degrees(o.z));
-      final x = degrees(o.x);
-      final y = degrees(-o.y);
-      double px = 0;
-      double py = 0;
-      double pz = 0;
-      if (x > 0) {
-        pz = -5000;
-        if (x < 90) {
-          px = (85 - x) * 5000 / 95;
-        } else {
-          px = -(85 - x) * 5000 / 95;
-        }
-      } else {
-        pz = 5000;
-        if (x > -90) {
-          px = (85 + x) * 5000 / 95;
-        } else {
-          px = -(85 + x) * 5000 / 95;
-        }
-      }
-      py = y * 5000 / 90;
-      //print("$px     $py     $pz");
     }
   }
 
@@ -505,15 +490,17 @@ class _Amz360ScenceState extends State<_Amz360Scence>
               title: value["title"],
               text: value["descriptions"],
               icon: hotspotWidget));
-          await Amz360.instance.addHotspotLable(
+          final hotspotLable = await Amz360.instance.addHotspotLable(
               imageId: currentIdImage,
               title: value["title"],
               text: value["descriptions"],
               x: Amz360Utils.shared
                   .convertXtoServer(degrees(o.x), degrees(-o.y)),
-              y: Amz360Utils.shared
-                  .convertYtoServer(degrees(o.x), degrees(-o.y)),
-              z: Amz360Utils.shared.convertZtoServer(degrees(o.x)));
+              y: Amz360Utils.shared.convertYtoServer(degrees(-o.y)),
+              z: Amz360Utils.shared
+                  .convertZtoServer(degrees(o.x), degrees(-o.y)));
+          vtCurrentImage!.label!.last.id = hotspotLable.id;
+          vtCurrentImage!.label!.last.imageId = hotspotLable.imageId;
           _streamController.add(null);
         } else {
           _streamController.add(null);
