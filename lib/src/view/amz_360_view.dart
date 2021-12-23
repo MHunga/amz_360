@@ -454,7 +454,9 @@ class _Amz360ScenceState extends State<_Amz360Scence>
             ),
           ),
         );
-        widgets.add(child);
+        if (hotspot.videoUrl == null) {
+          widgets.add(child);
+        }
       }
     }
     return Stack(children: widgets);
