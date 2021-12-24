@@ -108,8 +108,22 @@ Amz360View.client(
           },
         )
 ```
+7. Update project
 
-7. Add Hotspot to project: 
+```dart
+await Amz360.instance.updateProject(
+  idProject: id, 
+  title: "New title",
+  description: "New description");
+```
+
+8. Delete project
+
+```dart
+await Amz360.instance.deleteProject(id: id);
+```
+
+8. Add Hotspot to project: 
     
     - Example: 
       ```dart
