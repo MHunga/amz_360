@@ -50,7 +50,7 @@ Amz360View.url(
         )
 ```
 
-* To display 360 image from url
+* To display 360 image from client
 
 1. Create new account from [Modernbiztech](https://www.modernbiztech.com/).
 
