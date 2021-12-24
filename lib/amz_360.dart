@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:amz_360/src/models/response_vt_list_project.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:amz_360/src/service/api_service.dart';
-import 'package:amz_360/src/view/menu_control.dart';
 
 import 'src/models/vt_hotspot.dart';
 import 'src/utils/utils.dart';
@@ -27,17 +26,21 @@ class Amz360 {
   final StreamController<VTHotspotLable> hotspotLableStreamController =
       StreamController.broadcast();
 
-  Future<ResponseVtProject> getProject(int id) async {
+  Future<ResponseVtProject> getProject(
+      {required int id, OnError? onError, OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
-      return await api.getProject(apikey: _apiKey!, id: id);
+      return await api.getProject(
+          apikey: _apiKey!, id: id, onError: onError, onSuccess: onSuccess);
     } else {
       throw Exception("Please set client with apikey");
     }
   }
 
-  Future<ResponseVtListProject> getListProject() async {
+  Future<ResponseVtListProject> getListProject(
+      {OnError? onError, OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
-      return await api.getListProject(apiKey: _apiKey!);
+      return await api.getListProject(
+          apiKey: _apiKey!, onError: onError, onSuccess: onSuccess);
     } else {
       throw Exception("Please set client with apikey");
     }
@@ -48,40 +51,64 @@ class Amz360 {
       {required String title,
       String? descrition,
       required List<File> images,
-      OnUploadProgressCallback? progressCallback}) async {
+      OnUploadProgressCallback? progressCallback,
+      OnError? onError,
+      OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
       return await api.create(
           apiKey: _apiKey!,
           describe: descrition ?? "",
           images: images,
           title: title,
-          progressCallback: progressCallback);
+          progressCallback: progressCallback,
+          onError: onError,
+          onSuccess: onSuccess);
     } else {
       throw Exception("Please set client with apikey");
     }
   }
 
   //
-  //edit() {}
-
-  //
-  Future<ResponseVtProject> deleteProject(int id) async {
+  Future<ResponseVtProject> updateProject(
+      {required int idProject,
+      String? title,
+      String? description,
+      OnError? onError,
+      OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
-      return await api.deleteProject(apikey: _apiKey!, id: id);
+      return await api.updateProject(
+          projectId: idProject,
+          apiKey: _apiKey!,
+          title: title,
+          description: description,
+          onError: onError,
+          onSuccess: onSuccess);
     } else {
       throw Exception("Please set client with apikey");
     }
   }
 
-  Future addHotspotLable({
-    required int idImage,
-    required String title,
-    String? text,
-    File? image,
-    String? idVideoYoutube,
-    required double x,
-    required double y,
-  }) async {
+  //
+  Future<ResponseVtProject> deleteProject(
+      {required int id, OnError? onError, OnSuccess? onSuccess}) async {
+    if (_apiKey != null) {
+      return await api.deleteProject(
+          apikey: _apiKey!, id: id, onError: onError, onSuccess: onSuccess);
+    } else {
+      throw Exception("Please set client with apikey");
+    }
+  }
+
+  Future addHotspotLable(
+      {required int idImage,
+      required String title,
+      String? text,
+      File? image,
+      String? idVideoYoutube,
+      required double x,
+      required double y,
+      OnError? onError,
+      OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
       final hotspot = await api.addHospotLable(
           apiKey: _apiKey!,
@@ -92,7 +119,9 @@ class Amz360 {
           z: Amz360Utils.shared.convertZtoServer(x, y),
           text: text,
           image: image,
-          idYoutubeVideo: idVideoYoutube);
+          idYoutubeVideo: idVideoYoutube,
+          onError: onError,
+          onSuccess: onSuccess);
       hotspotLableStreamController.add(VTHotspotLable(
           x: x,
           y: y,
@@ -107,10 +136,18 @@ class Amz360 {
     }
   }
 
-  Future<bool> deleteHotspotLable(int imageId, int hotspotId) async {
+  Future<bool> deleteHotspotLable(
+      {required int imageId,
+      required int hotspotId,
+      OnError? onError,
+      OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
       return await api.deleteHotspotLable(
-          apikey: _apiKey!, imageId: imageId, hotspotId: hotspotId);
+          apikey: _apiKey!,
+          imageId: imageId,
+          hotspotId: hotspotId,
+          onError: onError,
+          onSuccess: onSuccess);
     } else {
       throw Exception("Please set client with apikey");
     }

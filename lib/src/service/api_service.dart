@@ -70,6 +70,39 @@ class ApiService {
     }
   }
 
+  Future<ResponseVtProject> updateProject(
+      {required String apiKey,
+      required int projectId,
+      String? title,
+      String? description,
+      OnSuccess? onSuccess,
+      OnError? onError}) async {
+    try {
+      final map = <String, dynamic>{};
+
+      map['action'] = "edit_infomation";
+      map['title'] = title;
+      map['describe'] = description;
+
+      var body = FormData.fromMap(map);
+      final response = await dio
+          .post("project/update/$projectId?apikey=$apiKey", data: body);
+      final data = jsonDecode(response.toString());
+      if (data['status'] == "success") {
+        if (onSuccess != null) onSuccess();
+        return ResponseVtProject.fromJson(data);
+      } else {
+        if (onError != null) onError(response.statusCode!, data['message']);
+        throw Exception(data['message']);
+      }
+    } on DioError catch (e) {
+      if (onError != null) {
+        onError(e.response != null ? e.response!.statusCode! : 0, e.message);
+      }
+      throw Exception(e.message);
+    }
+  }
+
   Future<ResponseVtProject> getProject(
       {required String apikey,
       required int id,

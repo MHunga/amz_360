@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             TextButton.styleFrom(backgroundColor: Colors.red),
                         onPressed: () async {
                           await Amz360.instance
-                              .deleteProject(list[index].id!)
+                              .deleteProject(id: list[index].id!)
                               .then((value) {
                             setState(() {});
                           });
@@ -172,8 +172,8 @@ class ViewVR extends StatelessWidget {
           },
           onLongPressStart: (x, y, idImage) async {
             log("$x   $y");
-            await Amz360.instance.addHotspotLable(
-                idImage: idImage!, title: "TESST", text: "Tessst", x: x, y: y);
+            // await Amz360.instance.addHotspotLable(
+            //     idImage: idImage!, title: "TESST", text: "Tessst", x: x, y: y);
           },
         ),
       ),

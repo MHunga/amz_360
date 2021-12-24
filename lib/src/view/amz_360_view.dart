@@ -224,7 +224,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   }
 
   _getProject(int? idProject) async {
-    await Amz360.instance.getProject(widget.idProject!).then((value) {
+    await Amz360.instance.getProject(id: widget.idProject!).then((value) {
       if (value.status == "success") {
         setState(() {
           vtProject = value.data;
@@ -365,39 +365,39 @@ class _Amz360ScenceState extends State<_Amz360Scence>
             //           onTap: () {},
             //           child: const Icon(Icons.zoom_out_map,
             //               color: Color(0xffffffff)))),
-            if (widget.showControl && widget.fromClient && vtProject != null)
-              Positioned(
-                  top: 14,
-                  child: StreamBuilder(
-                      stream: _stream,
-                      builder: (context, snapshot) {
-                        return ElevatedButton.icon(
-                            onPressed: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => EditProfileProjectDialog(
-                                  projectInfo: vtProject!,
-                                ),
-                              ).then((value) {
-                                if (value != null) {
-                                  vtProject!.changeInfo(
-                                      title: value["title"],
-                                      description: value["descriptions"]);
-                                  _streamController.add(null);
-                                }
-                              });
-                            },
-                            style: TextButton.styleFrom(
-                                backgroundColor:
-                                    const Color(0xff000000).withOpacity(0.5),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8))),
-                            icon: const Icon(
-                              Icons.edit_rounded,
-                              color: Color(0xffffffff),
-                            ),
-                            label: Text(vtProject!.title ?? ""));
-                      })),
+            // if (widget.showControl && widget.fromClient && vtProject != null)
+            //   Positioned(
+            //       top: 14,
+            //       child: StreamBuilder(
+            //           stream: _stream,
+            //           builder: (context, snapshot) {
+            //             return ElevatedButton.icon(
+            //                 onPressed: () async {
+            //                   await showDialog(
+            //                     context: context,
+            //                     builder: (context) => EditProfileProjectDialog(
+            //                       projectInfo: vtProject!,
+            //                     ),
+            //                   ).then((value) {
+            //                     if (value != null) {
+            //                       vtProject!.changeInfo(
+            //                           title: value["title"],
+            //                           description: value["descriptions"]);
+            //                       _streamController.add(null);
+            //                     }
+            //                   });
+            //                 },
+            //                 style: TextButton.styleFrom(
+            //                     backgroundColor:
+            //                         const Color(0xff000000).withOpacity(0.5),
+            //                     shape: RoundedRectangleBorder(
+            //                         borderRadius: BorderRadius.circular(8))),
+            //                 icon: const Icon(
+            //                   Icons.edit_rounded,
+            //                   color: Color(0xffffffff),
+            //                 ),
+            //                 label: Text(vtProject!.title ?? ""));
+            //           })),
             if (widget.showControl)
               Positioned(
                   left: 16,
@@ -463,7 +463,8 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                 isShowControl: widget.showControl,
                 callbackDeleteLable: () async {
                   await Amz360.instance
-                      .deleteHotspotLable(hotspot.imageId!, hotspot.id!)
+                      .deleteHotspotLable(
+                          imageId: hotspot.imageId!, hotspotId: hotspot.id!)
                       .then((value) {
                     if (value) {
                       vtCurrentImage!.label!
