@@ -14,6 +14,7 @@ dependencies:
   path: ^1.8.0
   collection: ^1.15.0
   dio: ^4.0.4
+  youtube_player_flutter: ^8.0.0
 
 dev_dependencies:
   flutter_test:

@@ -17,12 +17,10 @@ import 'dart:math' as math;
 import 'package:amz_360/src/scene/object.dart';
 
 import 'control_chervon_painter.dart';
-import 'edit_hotspot_dialog.dart';
 import 'hotspot_button.dart';
 import 'menu_control.dart';
 
-typedef EventCallback = Function(
-    double longitude, double latitude, double tilt);
+typedef EventCallback = Function(double x, double y, int? idImage);
 
 enum Amz360ViewType {
   /// 360° display mode.
@@ -74,9 +72,14 @@ class _Amz360Scence extends StatefulWidget {
   final EventCallback? onViewChanged;
 
   ///
-  final List<ControlIcon>? controlIcons;
+  ///final List<ControlIcon>? controlIcons;
+  final ControlIcon? textIcon;
 
   ///
+  final ControlIcon? imageIcon;
+
+  final ControlIcon? videoIcon;
+
   final bool showControl;
 
   final String? imageUrl;
@@ -98,10 +101,13 @@ class _Amz360Scence extends StatefulWidget {
       this.autoRotationSpeed = 0,
       this.enableSensorControl = false,
       this.displayMode = Amz360ViewType.view360,
-      this.controlIcons = const [],
+      //this.controlIcons = const [],
       this.showControl = false,
       this.imageUrl,
-      this.imageAsset})
+      this.imageAsset,
+      this.textIcon,
+      this.imageIcon,
+      this.videoIcon})
       : super(key: key);
 
   @override
@@ -145,13 +151,15 @@ class _Amz360ScenceState extends State<_Amz360Scence>
 
   double radian = 0;
 
-  ControlIcon? hotspotWidget;
+  //ControlIcon? hotspotWidget;
 
   VTImage? vtCurrentImage;
 
-  late int currentIdImage;
+  int? currentIdImage;
 
   VTProject? vtProject;
+
+  StreamSubscription<VTHotspotLable>? _addHotspotLableSubCription;
 
   @override
   void initState() {
@@ -170,6 +178,19 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     _controller = AnimationController(
         duration: const Duration(milliseconds: 40000), vsync: this)
       ..addListener(_updateView);
+
+    _addHotspotLableSubCription =
+        Amz360.instance.hotspotLableStreamController.stream.listen((hotspot) {
+      if (vtCurrentImage != null) {
+        if (vtCurrentImage!.label != null) {
+          vtCurrentImage!.label!.add(hotspot);
+        } else {
+          vtCurrentImage!.label = [];
+          vtCurrentImage!.label!.add(hotspot);
+        }
+        _streamController.add(null);
+      }
+    });
 
     // _moveController =
     //     AnimationController(vsync: this, duration: const Duration(seconds: 1))
@@ -219,6 +240,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     _imageStream?.removeListener(ImageStreamListener(_updateTexture));
     _orientationSubscription?.cancel();
     _screenOrientSubscription?.cancel();
+    _addHotspotLableSubCription?.cancel();
     _streamController.close();
     _controller.dispose();
     super.dispose();
@@ -321,19 +343,19 @@ class _Amz360ScenceState extends State<_Amz360Scence>
               ],
             ),
 
-            if (widget.showControl)
-              Positioned(
-                top: 16,
-                left: 16,
-                child: MenuControl(
-                  children: widget.controlIcons!,
-                  callbackSelected: (widget) {
-                    hotspotWidget = widget;
+            // if (widget.showControl)
+            //   Positioned(
+            //     top: 16,
+            //     left: 16,
+            //     child: MenuControl(
+            //       children: widget.controlIcons!,
+            //       callbackSelected: (widget) {
+            //         hotspotWidget = widget;
 
-                    _streamController.add(null);
-                  },
-                ),
-              ),
+            //         _streamController.add(null);
+            //       },
+            //     ),
+            //   ),
             // if (widget.showControl)
             //   Positioned(
             //       top: 16,
@@ -415,6 +437,15 @@ class _Amz360ScenceState extends State<_Amz360Scence>
       for (var hotspot in vtCurrentImage!.label!) {
         // hotspot.showControlListenter(widget.showControl);
         // print("HOTSPOT [${hotspot.x},${hotspot.y}]");
+        if (hotspot.text != null) {
+          hotspot.icon = widget.textIcon;
+        }
+        if (hotspot.imageUrl != null) {
+          hotspot.icon = widget.imageIcon;
+        }
+        if (hotspot.videoUrl != null) {
+          hotspot.icon = widget.videoIcon;
+        }
         final Vector3 pos = Amz360Utils.shared
             .positionFromLatLon(scene!, hotspot.y!, hotspot.x!);
         const Offset orgin = Offset(30, 25);
@@ -447,6 +478,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                 title: hotspot.title,
                 descriptions: hotspot.text,
                 imageUrl: hotspot.imageUrl,
+                videoIframe: hotspot.videoUrl,
                 callbackMovement: (idImage) {
                   // callbackMovement?.call(idImage, latitude, longitude);
                 },
@@ -454,9 +486,8 @@ class _Amz360ScenceState extends State<_Amz360Scence>
             ),
           ),
         );
-        if (hotspot.videoUrl == null) {
-          widgets.add(child);
-        }
+
+        widgets.add(child);
       }
     }
     return Stack(children: widgets);
@@ -466,85 +497,25 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     final Vector3 o = Amz360Utils.shared.positionToLatLon(
         scene!, details.localPosition.dx, details.localPosition.dy);
     if (widget.onTap != null) {
-      widget.onTap!(degrees(o.x), degrees(-o.y), degrees(o.z));
+      widget.onTap!(degrees(o.x), degrees(-o.y), currentIdImage);
     }
   }
 
   void _handleLongPressStart(LongPressStartDetails details) async {
     final Vector3 o = Amz360Utils.shared.positionToLatLon(
         scene!, details.localPosition.dx, details.localPosition.dy);
-    if (hotspotWidget != null) {
-      _controller.stop();
-      Vibrate.vibrate();
-
-      _streamController.add(null);
-
-      //if (hotspotWidget!.iconType == IconType.info) {
-      await showDialog(
-        context: context,
-        builder: (context) => EditInfoHotspotDialog(),
-      ).then((value) async {
-        _controller.repeat();
-        if (value != null) {
-          vtCurrentImage!.label!.add(VTHotspotLable(
-              x: degrees(o.x),
-              y: degrees(-o.y),
-              title: value["title"],
-              text: value["descriptions"],
-              icon: hotspotWidget));
-          final hotspotLable = await Amz360.instance.addHotspotLable(
-              imageId: currentIdImage,
-              title: value["title"],
-              text: value["descriptions"],
-              x: Amz360Utils.shared
-                  .convertXtoServer(degrees(o.x), degrees(-o.y)),
-              y: Amz360Utils.shared.convertYtoServer(degrees(-o.y)),
-              z: Amz360Utils.shared
-                  .convertZtoServer(degrees(o.x), degrees(-o.y)));
-          vtCurrentImage!.label!.last.id = hotspotLable.id;
-          vtCurrentImage!.label!.last.imageId = hotspotLable.imageId;
-          _streamController.add(null);
-        } else {
-          _streamController.add(null);
-        }
-      });
-      // } else {
-      //   await showDialog(
-      //     context: context,
-      //     builder: (context) => EditMovementHotspotDialog(
-      //       images: projectInfo!.images!,
-      //     ),
-      //   ).then((value) {
-      //     _controller.repeat();
-      //     if (value != null) {
-      //       projectImage!.hotspots!.last.addImage(value);
-      //       _streamController.add(null);
-      //     } else {
-      //       projectImage!.hotspots!.removeLast();
-      //       _streamController.add(null);
-      //     }
-      //   });
-      // }
-      // showGeneralDialog(
-      //   context: context,
-      //   useRootNavigator: false,
-
-      //   pageBuilder: (context, animation, secondaryAnimation) =>
-      //       const EditHotspotDialog(),
-      // );
-    }
-
     if (widget.onLongPressStart != null) {
-      widget.onLongPressStart!(degrees(o.x), degrees(-o.y), degrees(o.z));
+      Vibrate.vibrate();
+      widget.onLongPressStart!(degrees(o.x), degrees(-o.y), currentIdImage);
     }
   }
 
   void _handleLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
     final Vector3 o = Amz360Utils.shared.positionToLatLon(
         scene!, details.localPosition.dx, details.localPosition.dy);
-    //log("${o.x} .. ${o.y} .. ${o.z}");
     if (widget.onLongPressMoveUpdate != null) {
-      widget.onLongPressMoveUpdate!(degrees(o.x), degrees(-o.y), degrees(o.z));
+      widget.onLongPressMoveUpdate!(
+          degrees(o.x), degrees(-o.y), currentIdImage);
     }
   }
 
@@ -552,7 +523,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     final Vector3 o = Amz360Utils.shared.positionToLatLon(
         scene!, details.localPosition.dx, details.localPosition.dy);
     if (widget.onLongPressEnd != null) {
-      widget.onLongPressEnd!(degrees(o.x), degrees(-o.y), degrees(o.z));
+      widget.onLongPressEnd!(degrees(o.x), degrees(-o.y), currentIdImage);
     }
   }
 
@@ -719,7 +690,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
 
     o = Amz360Utils.shared.quaternionToOrientation(
         q * Quaternion.axisAngle(Vector3(0, 1, 0), math.pi * 0.5));
-    widget.onViewChanged?.call(degrees(o.x), degrees(-o.y), degrees(o.z));
+    widget.onViewChanged?.call(degrees(o.x), degrees(-o.y), currentIdImage);
     radian = o.x;
     q.rotate(scene!.camera.target..setFrom(Vector3(0, 0, -500)));
     q.rotate(scene!.camera.up..setFrom(Vector3(0, 1, 0)));
@@ -735,26 +706,31 @@ class Amz360View extends _Amz360Scence {
   const Amz360View.client(
       {Key? key,
       required int id,
+      required ControlIcon textHotspotIcon,
+      required ControlIcon imageHotspotIcon,
+      required ControlIcon videoHotspotIcon,
       double autoRotationSpeed = 0,
-      List<ControlIcon>? controlIcons,
       Amz360ViewType displayMode = Amz360ViewType.view360,
       bool enableSensorControl = false,
       double minZoom = 1.0,
       double maxZoom = 5.0,
       double zoom = 1.0,
-      Function(double, double, double)? onLongPressEnd,
-      Function(double, double, double)? onLongPressMoveUpdate,
-      Function(double, double, double)? onLongPressStart,
-      Function(double, double, double)? onTap,
-      Function(double, double, double)? onViewChanged,
+      EventCallback? onLongPressEnd,
+      EventCallback? onLongPressMoveUpdate,
+      EventCallback? onLongPressStart,
+      EventCallback? onTap,
+      EventCallback? onViewChanged,
       bool showControl = false})
-      : assert(showControl != true || controlIcons != null),
+      :
+        //assert(showControl != true || controlIcons != null),
         super(
             key: key,
             fromClient: true,
             idProject: id,
             autoRotationSpeed: autoRotationSpeed,
-            controlIcons: controlIcons,
+            textIcon: textHotspotIcon,
+            imageIcon: imageHotspotIcon,
+            videoIcon: videoHotspotIcon,
             displayMode: displayMode,
             enableSensorControl: enableSensorControl,
             minZoom: minZoom,
@@ -775,11 +751,11 @@ class Amz360View extends _Amz360Scence {
     bool enableSensorControl = false,
     double minZoom = 1.0,
     double maxZoom = 5.0,
-    Function(double, double, double)? onLongPressEnd,
-    Function(double, double, double)? onLongPressMoveUpdate,
-    Function(double, double, double)? onLongPressStart,
-    Function(double, double, double)? onTap,
-    Function(double, double, double)? onViewChanged,
+    EventCallback? onLongPressEnd,
+    EventCallback? onLongPressMoveUpdate,
+    EventCallback? onLongPressStart,
+    EventCallback? onTap,
+    EventCallback? onViewChanged,
   }) : super(
             key: key,
             fromClient: false,
@@ -804,11 +780,11 @@ class Amz360View extends _Amz360Scence {
     bool enableSensorControl = false,
     double minZoom = 1.0,
     double maxZoom = 5.0,
-    Function(double, double, double)? onLongPressEnd,
-    Function(double, double, double)? onLongPressMoveUpdate,
-    Function(double, double, double)? onLongPressStart,
-    Function(double, double, double)? onTap,
-    Function(double, double, double)? onViewChanged,
+    EventCallback? onLongPressEnd,
+    EventCallback? onLongPressMoveUpdate,
+    EventCallback? onLongPressStart,
+    EventCallback? onTap,
+    EventCallback? onViewChanged,
   }) : super(
             key: key,
             fromClient: false,

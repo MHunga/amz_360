@@ -4,13 +4,16 @@ export 'src/view/menu_control.dart';
 export 'src/models/response_vt_list_project.dart';
 export 'src/models/response_vt_project.dart';
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:amz_360/src/models/response_vt_list_project.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:amz_360/src/service/api_service.dart';
+import 'package:amz_360/src/view/menu_control.dart';
 
 import 'src/models/vt_hotspot.dart';
+import 'src/utils/utils.dart';
 
 class Amz360 {
   static final Amz360 instance = Amz360();
@@ -20,6 +23,9 @@ class Amz360 {
   }
 
   final ApiService api = ApiService();
+  int? currentImageId;
+  final StreamController<VTHotspotLable> hotspotLableStreamController =
+      StreamController.broadcast();
 
   Future<ResponseVtProject> getProject(int id) async {
     if (_apiKey != null) {
@@ -67,26 +73,35 @@ class Amz360 {
     }
   }
 
-  Future<VTHotspotLable> addHotspotLable(
-      {required int imageId,
-      required String title,
-      required String text,
-      required double x,
-      required double y,
-      required double z}) async {
+  Future addHotspotLable({
+    required int idImage,
+    required String title,
+    String? text,
+    File? image,
+    String? idVideoYoutube,
+    required double x,
+    required double y,
+  }) async {
     if (_apiKey != null) {
-      return await api.addHospotLable(
-        apiKey: _apiKey!,
-        imageId: imageId,
-        title: title,
-        x: x,
-        y: y,
-        z: z,
-        text: text,
-        onSuccess: () {
-          print("Done");
-        },
-      );
+      final hotspot = await api.addHospotLable(
+          apiKey: _apiKey!,
+          imageId: idImage,
+          title: title,
+          x: Amz360Utils.shared.convertXtoServer(x, y),
+          y: Amz360Utils.shared.convertYtoServer(y),
+          z: Amz360Utils.shared.convertZtoServer(x, y),
+          text: text,
+          image: image,
+          idYoutubeVideo: idVideoYoutube);
+      hotspotLableStreamController.add(VTHotspotLable(
+          x: x,
+          y: y,
+          id: hotspot.id,
+          imageId: hotspot.imageId,
+          title: hotspot.title,
+          text: hotspot.text,
+          imageUrl: hotspot.imageUrl,
+          videoUrl: hotspot.videoUrl));
     } else {
       throw Exception("Please set client with apikey");
     }

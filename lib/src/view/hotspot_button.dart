@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:amz_360/src/view/menu_control.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 // ignore: must_be_immutable
 class HotspotButton extends StatefulWidget {
@@ -17,12 +18,14 @@ class HotspotButton extends StatefulWidget {
     this.isShowControl = false,
     this.callbackDeleteLable,
     this.imageUrl,
+    this.videoIframe,
   }) : super(key: key);
   final ControlIcon icon;
   final Function()? onPressed;
   final String? title;
   final String? descriptions;
   final String? imageUrl;
+  final String? videoIframe;
   final int? idImage;
   final Function(int)? callbackMovement;
   final Function()? callbackDeleteLable;
@@ -38,6 +41,7 @@ class _HotspotButtonState extends State<HotspotButton>
   late AnimationController controller;
   late Animation<double> scaleAnimation;
   StreamController<bool> showDeleteController = StreamController.broadcast();
+  YoutubePlayerController? _youtubeController;
   @override
   void initState() {
     super.initState();
@@ -45,6 +49,15 @@ class _HotspotButtonState extends State<HotspotButton>
         vsync: this, duration: const Duration(milliseconds: 500));
     scaleAnimation = Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(parent: controller, curve: Curves.easeOutQuart));
+    if (widget.videoIframe != null) {
+      _youtubeController = YoutubePlayerController(
+        initialVideoId: getIdFromEmbeded(widget.videoIframe!),
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+        ),
+      );
+    }
   }
 
   @override
@@ -98,7 +111,14 @@ class _HotspotButtonState extends State<HotspotButton>
                               if (widget.imageUrl != null)
                                 ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(widget.imageUrl!))
+                                    child: Image.network(widget.imageUrl!)),
+                              if (widget.videoIframe != null)
+                                ClipRRect(
+                                    borderRadius: BorderRadius.circular(5),
+                                    child: YoutubePlayer(
+                                      controller: _youtubeController!,
+                                      showVideoProgressIndicator: true,
+                                    )),
                             ],
                           ),
                         ),
@@ -159,5 +179,11 @@ class _HotspotButtonState extends State<HotspotButton>
           )
       ],
     );
+  }
+
+  String getIdFromEmbeded(String videoIframe) {
+    final l1 = videoIframe.split("embed/");
+    final l2 = l1[1].split(r'"');
+    return l2[0];
   }
 }

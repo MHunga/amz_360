@@ -123,9 +123,9 @@ class ApiService {
       required double x,
       required double y,
       required double z,
-      required String text,
-      //String? videoUrl,
-      //List<File>? images,
+      String? text,
+      String? idYoutubeVideo,
+      File? image,
       OnSuccess? onSuccess,
       OnError? onError}) async {
     final map = <String, dynamic>{};
@@ -133,13 +133,18 @@ class ApiService {
     map['positions_x'] = x.toStringAsFixed(2);
     map['positions_y'] = y.toStringAsFixed(2);
     map['positions_z'] = z.toStringAsFixed(2);
-    //if (text != null) {
-    map['text'] = text;
-    // } else {
-    //   if (videoUrl == null && images == null) {
-    //     throw Exception("if text == null, videoUrl or images is required");
-    //   }
-    // }
+    if (text != null) {
+      map['text'] = text;
+    }
+
+    if (image != null) {
+      map['img[]'] = [await MultipartFile.fromFile(image.path)];
+    }
+
+    if (idYoutubeVideo != null) {
+      map['video_url'] =
+          '<iframe width="560" height="315" src="https://www.youtube.com/embed/$idYoutubeVideo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    }
     final body = FormData.fromMap(map);
     try {
       final response = await dio

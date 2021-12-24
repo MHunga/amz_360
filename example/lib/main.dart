@@ -157,17 +157,23 @@ class ViewVR extends StatelessWidget {
       body: SafeArea(
         child: Amz360View.client(
           id: id,
+          textHotspotIcon:
+              ControlIcon(child: const Icon(Icons.info, color: Colors.white)),
+          imageHotspotIcon:
+              ControlIcon(child: const Icon(Icons.image, color: Colors.white)),
+          videoHotspotIcon: ControlIcon(
+              child: const Icon(Icons.ondemand_video_rounded,
+                  color: Colors.white)),
           autoRotationSpeed: 0.0,
           enableSensorControl: true,
           showControl: true,
-          controlIcons: [
-            ControlIcon(child: const Icon(Icons.info, color: Colors.white)),
-          ],
-          onTap: (long, lat, t) {
-            log("$long   $lat, $t");
+          onTap: (x, y, idImage) {
+            log("$x   $y");
           },
-          onLongPressStart: (long, lat, t) {
-            log("$long   $lat, $t");
+          onLongPressStart: (x, y, idImage) async {
+            log("$x   $y");
+            await Amz360.instance.addHotspotLable(
+                idImage: idImage!, title: "TESST", text: "Tessst", x: x, y: y);
           },
         ),
       ),

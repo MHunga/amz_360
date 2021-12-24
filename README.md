@@ -71,7 +71,7 @@ await Amz360.instance
                   .create(
                 title: "This is title of project",
                 descrition: "This is descriptions of project",
-                images: lisfile,
+                images: listfile,
                 progressCallback: (sentBytes, totalBytes) {
                   print("Progress: $sentBytes/$totalBytes");
                 },
@@ -89,46 +89,59 @@ print(data!.data![0].id);
 
 ```dart
 Amz360View.client(
-          id: id, // Id of project
+          id: id, // id of project
+          textHotspotIcon:
+              ControlIcon(child: const Icon(Icons.info, color: Colors.white)), // set Icon of text hotspot
+          imageHotspotIcon:
+              ControlIcon(child: const Icon(Icons.image, color: Colors.white)), // set Icon of image hotspot
+          videoHotspotIcon: ControlIcon(
+              child: const Icon(Icons.ondemand_video_rounded,
+                  color: Colors.white)), // set Icon of Youtube video hotspot
           autoRotationSpeed: 0.0,
           enableSensorControl: true,
           showControl: true,
-          controlIcons: [
-            ControlIcon(
-                child: Image.asset("assets/info.png", width: 24, height: 24)),
-          ],
-          onTap: (long, lat, t) {
-            log("$long   $lat, $t");
+          onTap: (x, y, idImage) {
+            log("$x   $y");
           },
-          onLongPressStart: (long, lat, t) {
-            log("$long   $lat, $t");
+          onLongPressStart: (x, y, idImage) async {
+            log("$x   $y");
           },
-        ),
+        )
 ```
 
-7. Add Hotspot to project: (This feature is on Beta - synchronized Hotspot's Positions from Flutter Plugin to Web Plugin)
+7. Add Hotspot to project: 
     
-    - Make sure `showControl : true` ,
-      
-      and `controlIcons` has children ,
-      For example: 
+    - Example: 
       ```dart
-        controlIcons: [
-            ControlIcon(
-                child: Image.asset("assets/info.png", width: 24, height: 24)),
-          ],
+      ...
+         onLongPressStart: (x, y, idImage) async {
+            log("$x   $y");
+            await Amz360.instance.addHotspotLable(
+                idImage: idImage!, title: "TESST", text: "Tessst", x: x, y: y);
+          },
+          ...
       ```
 
-    - Tap Menu Icon to show the ControlIcon
+    - Add text hotspot: Need to pass `text` value , 
 
-    - Select the ControlIcon
+       ```dart
+            await Amz360.instance.addHotspotLable(
+                idImage: idImage!, title: "TESST", text: "Tessst", x: x, y: y);
+      ```
 
-    - Press and Hold on the pixel of image. It show the dialog to type the info of Hotspot. 
+    - Add image hotspot: Need to pass `image` value , 
 
-    - Press OK to save.
+       ```dart
+            await Amz360.instance.addHotspotLable(
+                idImage: idImage!, title: "TESST", image: file, x: x, y: y);
+      ```  
 
-    * This feature is on Beta
+    - Add video youtube hotspot: Need to pass `idVideoYoutube` value , 
 
+       ```dart
+            await Amz360.instance.addHotspotLable(
+                idImage: idImage!, title: "TESST", idVideoYoutube: "idVideoYoutube", x: x, y: y);
+      ```
 
 
 # Basic properties
