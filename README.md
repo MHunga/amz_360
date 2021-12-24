@@ -6,9 +6,13 @@ AMZ 360 is a plugin that provides a 360 degree image visualizer in Flutter.
 * Display via URL.
 * Display via Client of [Modernbiztech](https://www.modernbiztech.com/).
 
-## Getting Started
+# Screenshot
 
-# Install
+![screenshot](https://github.com/MHunga/amz_360/blob/main/screenshot/record.gif)
+
+# Getting Started
+
+## Install
 
 In `pubspec.yaml` add to `dependencies`:
 
@@ -20,13 +24,13 @@ dependencies:
             ref: main
 ```
 
-# Import
+## Import
 
 ```dart
 import 'package:amz_360/amz_360.dart';
 ```
 
-# Usage
+## Usage
 
 * To display 360 image from assets
 
@@ -123,7 +127,7 @@ await Amz360.instance.updateProject(
 await Amz360.instance.deleteProject(id: id);
 ```
 
-8. Add Hotspot to project: 
+9. Add Hotspot to project: 
     
     - Example: 
       ```dart
@@ -158,7 +162,7 @@ await Amz360.instance.deleteProject(id: id);
       ```
 
 
-# Basic properties
+## Basic properties
 
 | Properties          | Value              |                                                |
 | -----------------   | ------------------ | ---------------------------------------------- |
