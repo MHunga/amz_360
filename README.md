@@ -21,7 +21,7 @@ dependencies:
     amz_360:
         git:
             url: git@github.com:MHunga/amz_360.git
-            ref: main
+            ref: 1.0.0 #(version)
 ```
 
 ## Import
