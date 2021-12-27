@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: AspectRatio(
                           aspectRatio: 16 / 9,
                           child: Image.network(
-                            list[index].images!.url!,
+                            list[index].images!.thumbnailUrl!,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -149,8 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class ViewVR extends StatelessWidget {
   final int id;
-   ViewVR({Key? key, required this.id}) : super(key: key);
-  
+  ViewVR({Key? key, required this.id}) : super(key: key);
+
   final TextEditingController titleController = TextEditingController();
   final TextEditingController textController = TextEditingController();
   @override
@@ -159,56 +159,62 @@ class ViewVR extends StatelessWidget {
       body: SafeArea(
         child: Amz360View.client(
           id: id,
-          textHotspotIcon:
-              ControlIcon(child: const Icon(Icons.info, color: Colors.white)),
-          imageHotspotIcon:
-              ControlIcon(child: const Icon(Icons.image, color: Colors.white)),
-          videoHotspotIcon: ControlIcon(
-              child: const Icon(Icons.ondemand_video_rounded,
-                  color: Colors.white)),
+          textHotspotIcon: const Icon(Icons.info, color: Colors.white),
+          imageHotspotIcon: const Icon(Icons.image, color: Colors.white),
+          videoHotspotIcon:
+              const Icon(Icons.ondemand_video_rounded, color: Colors.white),
+          toOtherImageHotspotIcon:
+              const Icon(Icons.upload, color: Colors.white),
           autoRotationSpeed: 0.0,
-          enableSensorControl: true,
+          enableSensorControl: false,
           showControl: true,
           onTap: (x, y, idImage) {
             log("$x   $y");
           },
           onLongPressStart: (x, y, idImage) async {
             log("$x   $y");
-            showDialog(context: context, builder: (context)=> AlertDialog(
-              title: const Text("Add text hotspot"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: "Title"
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: textController,
-                    decoration: const InputDecoration(
-                      labelText: "Description"
-                    ),
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(onPressed: (){
-                  Navigator.pop(context);
-                }, child: const Text("Cancel")),
-                TextButton(onPressed: (){
-                  Navigator.pop(context, true);
-                }, child: const Text("OK"))
-              ],
-            )).then((value) async{
-              if(value!=null){
+            showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                      title: const Text("Add text hotspot"),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormField(
+                            controller: titleController,
+                            decoration:
+                                const InputDecoration(labelText: "Title"),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: textController,
+                            decoration:
+                                const InputDecoration(labelText: "Description"),
+                          )
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Cancel")),
+                        TextButton(
+                            onPressed: () {
+                              Navigator.pop(context, true);
+                            },
+                            child: const Text("OK"))
+                      ],
+                    )).then((value) async {
+              if (value != null) {
                 await Amz360.instance.addHotspotLable(
-                idImage: idImage!, title: titleController.text, text: textController.text, x: x, y: y);
+                    idImage: idImage!,
+                    title: titleController.text,
+                    text: textController.text,
+                    x: x,
+                    y: y);
               }
             });
-            
           },
         ),
       ),

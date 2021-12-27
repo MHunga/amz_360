@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:amz_360/amz_360.dart';
+import 'package:amz_360/src/models/client_texture.dart';
 import 'package:amz_360/src/models/response_vt_project.dart';
 import 'package:amz_360/src/models/vt_hotspot.dart';
 import 'package:amz_360/src/scene/mesh.dart';
@@ -10,7 +11,6 @@ import 'package:amz_360/src/scene/scene_view.dart';
 import 'package:amz_360/src/sensor/sensor.dart';
 import 'package:amz_360/src/utils/utils.dart';
 import 'package:amz_360/src/vibrate/vibrate.dart';
-import 'package:amz_360/src/view/edit_profile_project_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'dart:math' as math;
@@ -18,7 +18,6 @@ import 'package:amz_360/src/scene/object.dart';
 
 import 'control_chervon_painter.dart';
 import 'hotspot_button.dart';
-import 'menu_control.dart';
 
 typedef EventCallback = Function(double x, double y, int? idImage);
 
@@ -73,12 +72,14 @@ class _Amz360Scence extends StatefulWidget {
 
   ///
   ///final List<ControlIcon>? controlIcons;
-  final ControlIcon? textIcon;
+  final Widget? textIcon;
 
   ///
-  final ControlIcon? imageIcon;
+  final Widget? imageIcon;
 
-  final ControlIcon? videoIcon;
+  final Widget? videoIcon;
+
+  final Widget? toImageIcon;
 
   final bool showControl;
 
@@ -107,7 +108,8 @@ class _Amz360Scence extends StatefulWidget {
       this.imageAsset,
       this.textIcon,
       this.imageIcon,
-      this.videoIcon})
+      this.videoIcon,
+      this.toImageIcon})
       : super(key: key);
 
   @override
@@ -145,7 +147,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   Vector3 orientation = Vector3(0, radians(90), 0);
   StreamSubscription? _orientationSubscription;
   StreamSubscription? _screenOrientSubscription;
-  ImageStream? _imageStream;
+
   late StreamController _streamController;
   Stream? _stream;
 
@@ -161,9 +163,23 @@ class _Amz360ScenceState extends State<_Amz360Scence>
 
   StreamSubscription<VTHotspotLable>? _addHotspotLableSubCription;
 
+  List<ClientTexture> clientTextures = [];
+
+  StreamController<double?> loadImageStreamController =
+      StreamController.broadcast();
+
+  bool showHotspot = false;
+
+  late AnimationController fadeAnimationController = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 300));
+
+  late Animation<double> fadeAnimation =
+      Tween<double>(begin: 0, end: 1).animate(fadeAnimationController);
+
   @override
   void initState() {
     super.initState();
+
     if (widget.fromClient) {
       _getProject(widget.idProject);
     }
@@ -237,7 +253,9 @@ class _Amz360ScenceState extends State<_Amz360Scence>
 
   @override
   void dispose() {
-    _imageStream?.removeListener(ImageStreamListener(_updateTexture));
+    for (var item in clientTextures) {
+      item.dispose();
+    }
     _orientationSubscription?.cancel();
     _screenOrientSubscription?.cancel();
     _addHotspotLableSubCription?.cancel();
@@ -246,28 +264,23 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     super.dispose();
   }
 
-  @override
-  void didUpdateWidget(_Amz360Scence oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (surface == null) return;
-    if (widget.fromClient) {
-      String? imageUrl;
-      if (widget.imageUrl != null) {
-        imageUrl = widget.imageUrl;
-      } else {
-        imageUrl = vtCurrentImage!.image!.url;
-      }
-      _loadTexture(Image.network(imageUrl!).image);
-    } else {
-      if (widget.imageUrl != null) {
-        _loadTexture(Image.network(widget.imageUrl!).image);
-      } else if (widget.imageAsset != null) {
-        _loadTexture(Image.asset(widget.imageUrl!).image);
-      }
-    }
+  // @override
+  // void didUpdateWidget(_Amz360Scence oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
+  //   print("object");
+  //   if (surface == null) return;
+  //   if (widget.fromClient && vtProject != null) {
+  //     _loadClientTexture(vtProject!.images);
+  //   } else {
+  //     if (widget.imageUrl != null) {
+  //       _loadTexture(true, widget.imageUrl);
+  //     } else if (widget.imageAsset != null) {
+  //       _loadTexture(false, widget.imageUrl);
+  //     }
+  //   }
 
-    //_loadTexture(Image.asset("assets/panorama.jpeg").image);
-  }
+  //   //_loadTexture(Image.asset("assets/panorama.jpeg").image);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -296,37 +309,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         onLongPressMoveUpdate: _handleLongPressMoveUpdate,
         onLongPressEnd: _handleLongPressEnd,
         child: Stack(
-          alignment: Alignment.center,
           children: [
-            // AnimatedBuilder(
-            //   animation: _moveController,
-            //   builder: (context, child) => Transform(
-            //     alignment: Alignment.topCenter,
-            //     transform: Matrix4(
-            //         1,
-            //         0,
-            //         0,
-            //         0,
-            //         //column
-            //         0,
-            //         1,
-            //         0,
-            //         -0.0003 * _scaleAnimation.value,
-            //         //
-            //         0,
-            //         0,
-            //         1,
-            //         0,
-            //         //
-            //         0,
-            //         0,
-            //         0,
-            //         1),
-            //     //scale: _scaleAnimation,
-            //     child:
-            //   ),
-            // ),
-
             Stack(
               children: [
                 // FadeTransition(
@@ -338,66 +321,29 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                   StreamBuilder(
                       stream: _stream,
                       builder: (context, snapshot) {
-                        return buildHotspotWidgets();
+                        if (showHotspot) {
+                          return buildHotspotWidgets();
+                        } else {
+                          return const SizedBox.shrink();
+                        }
                       }),
+
+                AnimatedBuilder(
+                  animation: fadeAnimationController,
+                  builder: (context, child) {
+                    if (fadeAnimation.value == 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      height: double.infinity,
+                      width: double.infinity,
+                      color: const Color(0xff000000)
+                          .withOpacity(fadeAnimation.value),
+                    );
+                  },
+                )
               ],
             ),
-
-            // if (widget.showControl)
-            //   Positioned(
-            //     top: 16,
-            //     left: 16,
-            //     child: MenuControl(
-            //       children: widget.controlIcons!,
-            //       callbackSelected: (widget) {
-            //         hotspotWidget = widget;
-
-            //         _streamController.add(null);
-            //       },
-            //     ),
-            //   ),
-            // if (widget.showControl)
-            //   Positioned(
-            //       top: 16,
-            //       right: 16,
-            //       child: MenuAction(
-            //           isSelected: false,
-            //           onTap: () {},
-            //           child: const Icon(Icons.zoom_out_map,
-            //               color: Color(0xffffffff)))),
-            // if (widget.showControl && widget.fromClient && vtProject != null)
-            //   Positioned(
-            //       top: 14,
-            //       child: StreamBuilder(
-            //           stream: _stream,
-            //           builder: (context, snapshot) {
-            //             return ElevatedButton.icon(
-            //                 onPressed: () async {
-            //                   await showDialog(
-            //                     context: context,
-            //                     builder: (context) => EditProfileProjectDialog(
-            //                       projectInfo: vtProject!,
-            //                     ),
-            //                   ).then((value) {
-            //                     if (value != null) {
-            //                       vtProject!.changeInfo(
-            //                           title: value["title"],
-            //                           description: value["descriptions"]);
-            //                       _streamController.add(null);
-            //                     }
-            //                   });
-            //                 },
-            //                 style: TextButton.styleFrom(
-            //                     backgroundColor:
-            //                         const Color(0xff000000).withOpacity(0.5),
-            //                     shape: RoundedRectangleBorder(
-            //                         borderRadius: BorderRadius.circular(8))),
-            //                 icon: const Icon(
-            //                   Icons.edit_rounded,
-            //                   color: Color(0xffffffff),
-            //                 ),
-            //                 label: Text(vtProject!.title ?? ""));
-            //           })),
             if (widget.showControl)
               Positioned(
                   left: 16,
@@ -424,7 +370,21 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                         )
                       ],
                     ),
-                  ))
+                  )),
+            StreamBuilder<double?>(
+              stream: loadImageStreamController.stream,
+              builder: (context, snapshot) {
+                if (snapshot.data != null) {
+                  return Material(
+                    child: LinearProgressIndicator(
+                      value: snapshot.data,
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
+            )
           ],
         ),
       ),
@@ -473,14 +433,13 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                   });
                 },
                 icon: hotspot.icon ??
-                    ControlIcon(
-                        child:
-                            const Icon(Icons.info, color: Color(0xffffffff))),
+                    const Icon(Icons.info, color: Color(0xffffffff)),
+                iconType: IconType.info,
                 title: hotspot.title,
                 descriptions: hotspot.text,
                 imageUrl: hotspot.imageUrl,
                 videoIframe: hotspot.videoUrl,
-                callbackMovement: (idImage) {
+                callbackMovement: () {
                   // callbackMovement?.call(idImage, latitude, longitude);
                 },
               ),
@@ -491,6 +450,66 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         widgets.add(child);
       }
     }
+    if (vtCurrentImage!.link != null && scene != null) {
+      for (var hotspot in vtCurrentImage!.link!) {
+        // hotspot.showControlListenter(widget.showControl);
+        // print("HOTSPOT [${hotspot.x},${hotspot.y}]");
+        hotspot.icon = widget.toImageIcon;
+        final Vector3 pos = Amz360Utils.shared
+            .positionFromLatLon(scene!, hotspot.y!, hotspot.x!);
+        const Offset orgin = Offset(30, 25);
+        final Matrix4 transform = scene!.camera.lookAtMatrix *
+            Amz360Utils.shared.matrixFromLatLon(hotspot.y!, hotspot.x!);
+        final Widget child = Positioned(
+          left: pos.x - orgin.dx,
+          top: pos.y - orgin.dy,
+          child: Transform(
+            origin: orgin,
+            transform: transform..invert(),
+            child: Offstage(
+              offstage: pos.z < 0,
+              child: HotspotButton(
+                isShowControl: widget.showControl,
+                callbackDeleteLable: () async {
+                  await Amz360.instance
+                      .deleteHotspotLable(
+                          imageId: currentIdImage!, hotspotId: hotspot.id!)
+                      .then((value) {
+                    if (value) {
+                      vtCurrentImage!.label!
+                          .removeWhere((element) => element.id == hotspot.id);
+                    }
+                  });
+                },
+                icon: hotspot.icon ??
+                    const Icon(Icons.moving_outlined, color: Color(0xffffffff)),
+                iconType: IconType.movement,
+                callbackMovement: () async {
+                  int index = 0;
+                  for (var i = 0; i < clientTextures.length; i++) {
+                    if (hotspot.toImage == clientTextures[i].idImage) {
+                      index = i;
+                      break;
+                    }
+                  }
+
+                  fadeAnimationController.forward();
+                  await Future.delayed(const Duration(milliseconds: 300));
+                  _updateTexture(clientTextures[index].imageInfo!, false);
+                  vtCurrentImage = vtProject!.images!.firstWhere((element) =>
+                      element.image!.id == clientTextures[index].idImage);
+                  _streamController.add(null);
+                  fadeAnimationController.reverse();
+                },
+              ),
+            ),
+          ),
+        );
+
+        widgets.add(child);
+      }
+    }
+
     return Stack(children: widgets);
   }
 
@@ -576,19 +595,13 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     scene.camera.fov = 60;
     scene.camera.zoom = widget.zoom;
     scene.camera.position.setFrom(Vector3(0, 0, 0.1));
-    if (widget.fromClient && vtCurrentImage != null) {
+    if (widget.fromClient && vtProject != null) {
       final Mesh mesh = Amz360Utils.shared.generateSphereMesh(
           croppedArea: const Rect.fromLTWH(0.0, 0.0, 1.0, 1.0),
           croppedFullWidth: 1.0,
           croppedFullHeight: 1.0);
       surface = Object(name: 'surface', mesh: mesh, backfaceCulling: false);
-      String? imageUrl;
-      if (widget.imageUrl != null) {
-        imageUrl = widget.imageUrl;
-      } else {
-        imageUrl = vtCurrentImage!.image!.url;
-      }
-      _loadTexture(Image.network(imageUrl!).image);
+      _loadClientTexture(vtProject!.images);
       scene.world.add(surface!);
       _updateView();
     } else {
@@ -598,29 +611,56 @@ class _Amz360ScenceState extends State<_Amz360Scence>
           croppedFullHeight: 1.0);
       surface = Object(name: 'surface', mesh: mesh, backfaceCulling: false);
       if (widget.imageUrl != null) {
-        _loadTexture(Image.network(widget.imageUrl!).image);
+        _loadTexture(true, widget.imageUrl);
       } else if (widget.imageAsset != null) {
-        _loadTexture(Image.asset(widget.imageAsset!).image);
+        _loadTexture(false, widget.imageAsset);
       }
       scene.world.add(surface!);
       _updateView();
     }
   }
 
-  void _loadTexture(ImageProvider? provider) {
-    if (provider == null) return;
-    _imageStream?.removeListener(ImageStreamListener(_updateTexture));
-    _imageStream = provider.resolve(const ImageConfiguration());
-    ImageStreamListener listener = ImageStreamListener(_updateTexture);
-    _imageStream!.addListener(listener);
+  void _loadClientTexture(List<VTImage>? images) {
+    if (images == null) return;
+    for (var i = 0; i < images.length; i++) {
+      clientTextures.add(ClientTexture(
+        isNetwork: true,
+        idImage: images[i].image!.id,
+        imageUrl: images[i].image!.url,
+        progressCallback: (value) {
+          if (i == 0) {
+            loadImageStreamController.add(value);
+          }
+        },
+        updateTexture: (imageInfo, s) {
+          if (i == 0) {
+            _updateTexture(imageInfo, s);
+          }
+        },
+      ));
+      _streamController.add(null);
+    }
   }
 
-  void _updateTexture(ImageInfo imageInfo, bool synchronousCall) {
+  void _loadTexture(bool isNetwork, String? url) {
+    if (url == null) return;
+    clientTextures = [
+      ClientTexture(
+          isNetwork: isNetwork, imageUrl: url, updateTexture: _updateTexture)
+    ];
+  }
+
+  void _updateTexture(ImageInfo imageInfo, bool synchronousCall) async {
+    if (synchronousCall) {
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
     surface?.mesh.texture = imageInfo.image;
     surface?.mesh.textureRect = Rect.fromLTWH(0, 0,
         imageInfo.image.width.toDouble(), imageInfo.image.height.toDouble());
     scene!.texture = imageInfo.image;
     scene!.update();
+    showHotspot = true;
+    _streamController.add(null);
   }
 
   void _updateView() {
@@ -707,9 +747,10 @@ class Amz360View extends _Amz360Scence {
   const Amz360View.client(
       {Key? key,
       required int id,
-      required ControlIcon textHotspotIcon,
-      required ControlIcon imageHotspotIcon,
-      required ControlIcon videoHotspotIcon,
+      required Widget textHotspotIcon,
+      required Widget imageHotspotIcon,
+      required Widget videoHotspotIcon,
+      required Widget toOtherImageHotspotIcon,
       double autoRotationSpeed = 0,
       Amz360ViewType displayMode = Amz360ViewType.view360,
       bool enableSensorControl = false,
@@ -732,6 +773,7 @@ class Amz360View extends _Amz360Scence {
             textIcon: textHotspotIcon,
             imageIcon: imageHotspotIcon,
             videoIcon: videoHotspotIcon,
+            toImageIcon: toOtherImageHotspotIcon,
             displayMode: displayMode,
             enableSensorControl: enableSensorControl,
             minZoom: minZoom,

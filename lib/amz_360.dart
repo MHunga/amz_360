@@ -1,6 +1,5 @@
 export 'src/scene/scene_view.dart';
 export 'src/view/amz_360_view.dart';
-export 'src/view/menu_control.dart';
 export 'src/models/response_vt_list_project.dart';
 export 'src/models/response_vt_project.dart';
 

@@ -1,33 +1,34 @@
 import 'dart:async';
 
-import 'package:amz_360/src/view/menu_control.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+
+enum IconType { info, movement }
 
 // ignore: must_be_immutable
 class HotspotButton extends StatefulWidget {
   HotspotButton({
     Key? key,
     required this.icon,
+    required this.iconType,
     this.onPressed,
     this.title,
     this.descriptions,
     this.callbackMovement,
-    this.idImage,
     this.isShowControl = false,
     this.callbackDeleteLable,
     this.imageUrl,
     this.videoIframe,
   }) : super(key: key);
-  final ControlIcon icon;
+  final Widget icon;
+  final IconType iconType;
   final Function()? onPressed;
   final String? title;
   final String? descriptions;
   final String? imageUrl;
   final String? videoIframe;
-  final int? idImage;
-  final Function(int)? callbackMovement;
+  final Function()? callbackMovement;
   final Function()? callbackDeleteLable;
   bool isShowControl;
 
@@ -148,14 +149,14 @@ class _HotspotButtonState extends State<HotspotButton>
             // backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
             foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
           ),
-          child: widget.icon.child,
+          child: widget.icon,
           onLongPress: () {
             showDeleteController.add(true);
           },
           onPressed: () {
             showDeleteController.add(false);
-            if (widget.icon.iconType == IconType.movement) {
-              widget.callbackMovement!(widget.idImage!);
+            if (widget.iconType == IconType.movement) {
+              widget.callbackMovement!();
             } else {
               if (controller.isCompleted) {
                 controller.reverse();

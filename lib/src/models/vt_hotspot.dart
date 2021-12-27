@@ -1,4 +1,3 @@
-import 'package:amz_360/amz_360.dart';
 import 'package:amz_360/src/utils/utils.dart';
 import 'package:flutter/material.dart';
 
@@ -9,8 +8,9 @@ class VTHotspotLink {
   double? x;
   double? y;
   Widget? widget;
+  Widget? icon;
 
-  VTHotspotLink({this.id, this.toImage, this.x = 0.0, this.y = 0.0});
+  VTHotspotLink({this.id, this.toImage, this.x = 0.0, this.y = 0.0, this.icon});
 
   VTHotspotLink.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -47,7 +47,7 @@ class VTHotspotLable {
   HotspotPosition? _position;
   double? x;
   double? y;
-  ControlIcon? icon;
+  Widget? icon;
 
   VTHotspotLable(
       {this.id,

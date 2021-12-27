@@ -121,7 +121,6 @@ class Amz360Utils {
   }
 
   double convertXfromServer(double sx, double sy, double sz) {
-    print("[$sx , $sy , $sz]");
     double rx = math.atan2(sz, sx);
     return -degrees(rx);
   }
