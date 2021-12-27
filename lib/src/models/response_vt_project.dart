@@ -30,6 +30,7 @@ class VTProject {
   String? description;
   String? author;
   List<VTImage>? images;
+  VTImage? currentImage;
 
   VTProject({this.id, this.title, this.description, this.author, this.images});
 
@@ -41,6 +42,11 @@ class VTProject {
     images = json["images"] == null
         ? null
         : (json["images"] as List).map((e) => VTImage.fromJson(e)).toList();
+    if (images != null) {
+      if (images!.isNotEmpty) {
+        currentImage = images![0];
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

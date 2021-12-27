@@ -5,13 +5,13 @@ class ClientTexture {
   ImageStream? imageStream;
   ImageInfo? imageInfo;
   ImageStreamListener? listener;
-
+  Function(double?)? progressCallback;
   ClientTexture(
       {this.idImage,
       required bool isNetwork,
       String? imageUrl,
       Function(ImageInfo imageInfo, bool s)? updateTexture,
-      Function(double?)? progressCallback}) {
+      this.progressCallback}) {
     late ImageProvider provider;
     if (isNetwork) {
       provider = Image.network(imageUrl!).image;

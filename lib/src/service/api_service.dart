@@ -103,6 +103,70 @@ class ApiService {
     }
   }
 
+Future<ResponseVtProject> addImageToProject(
+      {required String apiKey,
+      required int projectId,
+      required List<File> images,
+      OnUploadProgressCallback? progressCallback,
+      OnSuccess? onSuccess,
+      OnError? onError}) async {
+    try {
+      final map = <String, dynamic>{};
+      var multipartFile = [];
+      map['action'] = "add_image";
+     for (var item in images) {
+      multipartFile.add(await MultipartFile.fromFile(item.path));
+    }
+      var body = FormData.fromMap(map);
+      final response = await dio
+          .post("project/update/$projectId?apikey=$apiKey", data: body,onSendProgress: progressCallback);
+      final data = jsonDecode(response.toString());
+      if (data['status'] == "success") {
+        if (onSuccess != null) onSuccess();
+        return ResponseVtProject.fromJson(data);
+      } else {
+        if (onError != null) onError(response.statusCode!, data['message']);
+        throw Exception(data['message']);
+      }
+    } on DioError catch (e) {
+      if (onError != null) {
+        onError(e.response != null ? e.response!.statusCode! : 0, e.message);
+      }
+      throw Exception(e.message);
+    }
+  }
+
+  Future<ResponseVtProject> deleteImageFromProject(
+      {required String apiKey,
+      required int projectId,
+      required int imageId,
+      OnUploadProgressCallback? progressCallback,
+      OnSuccess? onSuccess,
+      OnError? onError}) async {
+    try {
+      final map = <String, dynamic>{};
+      map['action'] = "remove_image";
+      map['image_id'] = imageId;
+     
+      var body = FormData.fromMap(map);
+      final response = await dio
+          .post("project/update/$projectId?apikey=$apiKey", data: body);
+      final data = jsonDecode(response.toString());
+      if (data['status'] == "success") {
+        if (onSuccess != null) onSuccess();
+        return ResponseVtProject.fromJson(data);
+      } else {
+        if (onError != null) onError(response.statusCode!, data['message']);
+        throw Exception(data['message']);
+      }
+    } on DioError catch (e) {
+      if (onError != null) {
+        onError(e.response != null ? e.response!.statusCode! : 0, e.message);
+      }
+      throw Exception(e.message);
+    }
+  }
+
   Future<ResponseVtProject> getProject(
       {required String apikey,
       required int id,
@@ -292,4 +356,6 @@ class ApiService {
       throw Exception(e.message);
     }
   }
+
+  
 }

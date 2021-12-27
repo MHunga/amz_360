@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -6,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:amz_360/amz_360.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'vr_view_screen.dart';
 
 void main() {
   Amz360.instance.setClient("1p7g4RrCOpQM2ze4rki1j4KvK");
@@ -44,8 +47,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  List<File> lisfile = [];
+  StreamController<double?> progressController = StreamController.broadcast();
+  StreamController<List<File>> selectImageController = StreamController.broadcast();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,170 +61,226 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await _picker.pickMultiImage().then((value) async {
-            if (value != null) {
-              for (var item in value) {
-                lisfile.add(File(item.path));
-              }
-              await Amz360.instance
-                  .create(
-                title: "Titlexxxđasasssxx",
-                descrition: "Descriptionssss",
-                images: lisfile,
-                progressCallback: (sentBytes, totalBytes) {
-                  print("Progress: $sentBytes/$totalBytes");
-                },
-              )
-                  .then((value) {
-                setState(() {});
-              });
-            }
-          });
+          _showCreateDialog(context);
         },
         child: const Icon(Icons.add),
       ),
-      body: SafeArea(
-          child: FutureBuilder<ResponseVtListProject>(
-        future: Amz360.instance.getListProject(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            print(snapshot.error);
-          }
-          if (snapshot.hasData) {
-            final list = snapshot.data!.data!;
-            return ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) => Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
+        children: [
+          SafeArea(
+              child: FutureBuilder<ResponseVtListProject>(
+            future: Amz360.instance.getListProject(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                print(snapshot.error);
+              }
+              if (snapshot.hasData) {
+                final list = snapshot.data!.data!;
+                return ListView.builder(
+                  itemCount: list.length,
+                  itemBuilder: (context, index) => Stack(
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => ViewVR(id: list[index].id!)));
-                        },
-                        child: AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: Image.network(
-                            list[index].images!.thumbnailUrl!,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          list[index].title ?? "",
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const Divider()
-                    ],
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    right: 0,
-                    child: ElevatedButton(
-                        style:
-                            TextButton.styleFrom(backgroundColor: Colors.red),
-                        onPressed: () async {
-                          await Amz360.instance
-                              .deleteProject(id: list[index].id!)
-                              .then((value) {
-                            setState(() {});
-                          });
-                        },
-                        child: const Text("Xoá")),
-                  )
-                ],
-              ),
-            );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator.adaptive(),
-            );
-          }
-        },
-      )),
-    );
-  }
-}
-
-class ViewVR extends StatelessWidget {
-  final int id;
-  ViewVR({Key? key, required this.id}) : super(key: key);
-
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController textController = TextEditingController();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Amz360View.client(
-          id: id,
-          textHotspotIcon: const Icon(Icons.info, color: Colors.white),
-          imageHotspotIcon: const Icon(Icons.image, color: Colors.white),
-          videoHotspotIcon:
-              const Icon(Icons.ondemand_video_rounded, color: Colors.white),
-          toOtherImageHotspotIcon:
-              const Icon(Icons.upload, color: Colors.white),
-          autoRotationSpeed: 0.0,
-          enableSensorControl: false,
-          showControl: true,
-          onTap: (x, y, idImage) {
-            log("$x   $y");
-          },
-          onLongPressStart: (x, y, idImage) async {
-            log("$x   $y");
-            showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                      title: const Text("Add text hotspot"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TextFormField(
-                            controller: titleController,
-                            decoration:
-                                const InputDecoration(labelText: "Title"),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          ViewVR(id: list[index].id!)));
+                            },
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: Image.network(
+                                list[index].images!.thumbnailUrl!,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: textController,
-                            decoration:
-                                const InputDecoration(labelText: "Description"),
-                          )
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              list[index].title ?? "",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const Divider()
                         ],
                       ),
-                      actions: [
-                        TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
+                      Positioned(
+                        bottom: 8,
+                        right: 0,
+                        child: ElevatedButton(
+                            style: TextButton.styleFrom(
+                                backgroundColor: Colors.red),
+                            onPressed: () async {
+                              await Amz360.instance
+                                  .deleteProject(id: list[index].id!)
+                                  .then((value) {
+                                setState(() {});
+                              });
                             },
-                            child: const Text("Cancel")),
-                        TextButton(
-                            onPressed: () {
-                              Navigator.pop(context, true);
-                            },
-                            child: const Text("OK"))
-                      ],
-                    )).then((value) async {
-              if (value != null) {
-                await Amz360.instance.addHotspotLable(
-                    idImage: idImage!,
-                    title: titleController.text,
-                    text: textController.text,
-                    x: x,
-                    y: y);
+                            child: const Text("Xoá")),
+                      )
+                    ],
+                  ),
+                );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator.adaptive(),
+                );
               }
-            });
-          },
-        ),
+            },
+          )),
+          StreamBuilder<double?>(
+              initialData: null,
+              stream: progressController.stream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  if (snapshot.data != null) {
+                    return Container(
+                        color: Colors.black54,
+                        child: Center(
+                            child: CircularProgressIndicator(
+                          value: snapshot.data,
+                        )));
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                } else {
+                  return const SizedBox.shrink();
+                }
+              })
+        ],
       ),
     );
+  }
+
+  void _showCreateDialog(BuildContext context) {
+    showDialog<List<File>?>(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: const Text("New Project"),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: "Title",
+                      ),
+                      validator: (val) {
+                        if (val!.isEmpty) {
+                          return "Can not empty";
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                        controller: descriptionController,
+                        decoration:
+                            const InputDecoration(labelText: "Descriptions"),
+                        validator: (val) {
+                          if (val!.isEmpty) {
+                            return "Can not empty";
+                          }
+                        }),
+                    const SizedBox(height: 8),
+                    StreamBuilder<List<File>>(
+                      initialData: const [],
+                      stream: selectImageController.stream,
+                      builder: (context, snapshot){
+                        if(snapshot.data!.isEmpty){
+return  ElevatedButton.icon(
+                          onPressed: () async {
+                            await _pickingImage();
+                          },
+                          icon: const Icon(Icons.upload),
+                          label: const Text("Select Image"));
+                        }else{
+                          return SizedBox(
+                        height: 150,
+                        width: MediaQuery.of(context).size.width/1.5,
+                        child: ListView.builder(
+                            itemCount: snapshot.data!.length,
+                            scrollDirection: Axis.horizontal,
+                            itemBuilder: (context, index) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
+                                  child: Image.file( snapshot.data![index]),
+                                )),
+                      );
+                        }
+                      })
+                     
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Cancel")),
+                StreamBuilder<List<File>>(
+                  initialData: const [],
+                  stream: selectImageController.stream,
+                  builder: (context, snapshot) {
+                    return TextButton(
+                        onPressed: snapshot.data!.isNotEmpty
+                            ? () {
+                                if (formKey.currentState!.validate()) {
+                                  Navigator.pop(context, snapshot.data!);
+                                }
+                              }
+                            : null,
+                        child: const Text("OK"));
+                  }
+                )
+              ],
+            )).then((value) async {
+      if (value != null) {
+        await Amz360.instance
+            .create(
+              title: titleController.text,
+              descrition: descriptionController.text,
+              images: value,
+              progressCallback: (sentBytes, totalBytes) {
+                double progress = sentBytes / totalBytes;
+                progressController.add(progress);
+                if (progress == 1) {
+                  progressController.add(null);
+                }
+              },
+            )
+            .then((value) => setState((){
+              titleController.clear();
+              descriptionController.clear();
+              selectImageController.add([]);
+            }));
+      }else{
+         titleController.clear();
+              descriptionController.clear();
+              selectImageController.add([]);
+      }
+    });
+  }
+
+  _pickingImage() async {
+    await _picker.pickMultiImage().then((value) async {
+      if (value != null) {
+        final List<File> list = [];
+        for (var item in value) {
+          list.add(File(item.path));
+        }
+        selectImageController.add(list);
+        
+      }
+    });
   }
 }
