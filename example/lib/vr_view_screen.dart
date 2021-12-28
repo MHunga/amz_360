@@ -238,13 +238,12 @@ class _ViewVRState extends State<ViewVR> {
                                   initialData: null,
                                   stream: tOtherImageIdController.stream,
                                   builder: (context, snapshot) {
-                                    print(projectInfo!.images!.length);
                                     return SizedBox(
                                       height: 150,
                                       width: MediaQuery.of(context).size.width /
                                           1.5,
                                       child: ListView.builder(
-                                        itemCount: projectInfo.images!.length,
+                                        itemCount: projectInfo!.images!.length,
                                         scrollDirection: Axis.horizontal,
                                         itemBuilder: (context, index) {
                                           if (projectInfo

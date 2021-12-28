@@ -21,7 +21,7 @@ dependencies:
     amz_360:
         git:
             url: git@github.com:MHunga/amz_360.git
-            ref: 1.0.0 #(version)
+            ref: 1.0.1 #(version)
 ```
 
 ## Import
@@ -94,13 +94,6 @@ print(data!.data![0].id);
 ```dart
 Amz360View.client(
           id: id, // id of project
-          textHotspotIcon:
-              ControlIcon(child: const Icon(Icons.info, color: Colors.white)), // set Icon of text hotspot
-          imageHotspotIcon:
-              ControlIcon(child: const Icon(Icons.image, color: Colors.white)), // set Icon of image hotspot
-          videoHotspotIcon: ControlIcon(
-              child: const Icon(Icons.ondemand_video_rounded,
-                  color: Colors.white)), // set Icon of Youtube video hotspot
           autoRotationSpeed: 0.0,
           enableSensorControl: true,
           showControl: true,
@@ -112,7 +105,7 @@ Amz360View.client(
           },
         )
 ```
-7. Update project
+7. Update info project
 
 ```dart
 await Amz360.instance.updateProject(
@@ -121,13 +114,37 @@ await Amz360.instance.updateProject(
   description: "New description");
 ```
 
-8. Delete project
+8. Upload image to project
+
+```dart
+await Amz360.instance
+            .uploadImageToProject(
+          idProject: id,
+          images: listImage,
+          progressCallback: (sentBytes, totalBytes) {
+            print(sentBytes / totalBytes);
+          },
+        );
+```
+
+
+9. Delete a image from project
+
+```dart
+await Amz360.instance
+            .deleteImageFromProject(
+          idProject: id,
+          idImage: idImage,
+        );
+```
+
+10. Delete project
 
 ```dart
 await Amz360.instance.deleteProject(id: id);
 ```
 
-9. Add Hotspot to project: 
+11. Add Lable Hotspot to project: 
     
     - Example: 
       ```dart
@@ -160,6 +177,21 @@ await Amz360.instance.deleteProject(id: id);
             await Amz360.instance.addHotspotLable(
                 idImage: idImage!, title: "TESST", idVideoYoutube: "idVideoYoutube", x: x, y: y);
       ```
+
+12. Add the Hotspot to go to other image of project: 
+
+    ```dart
+     await Amz360.instance.addHotspotToOtherImage(
+                              idImage: projectInfo!.currentImage!.image!.id!,
+                              toImageId: toImageId!,
+                              x: x,
+                              y: y);
+    ```
+
+ 13. Delete Hotspot:
+    Just set `enableControl : true`
+    Press and hold the hotspot icon to show the Delete button
+    Press to delete   
 
 
 ## Basic properties
