@@ -10,9 +10,9 @@ AMZ 360 is a plugin that provides a 360 degree image visualizer in Flutter.
  **Overview**
 ![](https://github.com/MHunga/amz_360_screenshots/blob/main/overview.gif)
 
-|Create Project| Add Image to Project|
+|Create Project                                                         | Add Image to Project                                                       |
 |![](https://github.com/MHunga/amz_360_screenshots/blob/main/create.gif)|![](https://github.com/MHunga/amz_360_screenshots/blob/main/addnewimage.gif)|
-|||
+<!-- |||
 |Add Text Hotstpot|Add Image Hotspot|
 |![](https://github.com/MHunga/amz_360_screenshots/blob/main/addTextLable.gif)|![](https://github.com/MHunga/amz_360_screenshots/blob/main/addimagelable.gif)|
 |||
@@ -20,7 +20,7 @@ AMZ 360 is a plugin that provides a 360 degree image visualizer in Flutter.
 |![](https://github.com/MHunga/amz_360_screenshots/blob/main/addlink.gif)|![](https://github.com/MHunga/amz_360_screenshots/blob/main/deleteLable.gif)|
 |||
 |Delete Project||
-|![](https://github.com/MHunga/amz_360_screenshots/blob/main/deleteProject.gif)||
+|![](https://github.com/MHunga/amz_360_screenshots/blob/main/deleteProject.gif)|| -->
 
 # Getting Started
 
@@ -33,7 +33,7 @@ dependencies:
     amz_360:
         git:
             url: git@github.com:MHunga/amz_360.git
-            ref: 1.0.1 #(version)
+            ref: 1.0.2 #(version)
 ```
 * **Android**: `minSdkVersion 17` and add support for `androidx` (see [AndroidX Migration](https://flutter.dev/docs/development/androidx-migration))
 * **iOS**: `--ios-language swift`, Xcode version `>= 11`
