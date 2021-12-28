@@ -10,6 +10,18 @@ AMZ 360 is a plugin that provides a 360 degree image visualizer in Flutter.
  **Overview**
 ![](https://github.com/MHunga/amz_360_screenshots/blob/main/overview.gif)
 
+|Create Project| Add Image to Project|
+|![](https://github.com/MHunga/amz_360_screenshots/blob/main/create.gif)|![](https://github.com/MHunga/amz_360_screenshots/blob/main/addnewimage.gif)|
+|||
+|Add Text Hotstpot|Add Image Hotspot|
+|![](https://github.com/MHunga/amz_360_screenshots/blob/main/addTextLable.gif)|![](https://github.com/MHunga/amz_360_screenshots/blob/main/addimagelable.gif)|
+|||
+|Add Link Hotspot|Delete Hotspot|
+|![](https://github.com/MHunga/amz_360_screenshots/blob/main/addlink.gif)|![](https://github.com/MHunga/amz_360_screenshots/blob/main/deleteLable.gif)|
+|||
+|Delete Project||
+|![](https://github.com/MHunga/amz_360_screenshots/blob/main/deleteProject.gif)||
+
 # Getting Started
 
 ## Install
