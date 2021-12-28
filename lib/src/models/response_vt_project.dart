@@ -71,7 +71,7 @@ class VTImage {
   VTImageDetails? image;
   List<VTHotspotLable>? label;
   List<VTHotspotLink>? link;
-
+  Map<String, dynamic>? totalHospot;
   VTImage({this.image, this.label, this.link});
 
   VTImage.fromJson(Map<String, dynamic> json) {
@@ -85,6 +85,37 @@ class VTImage {
     link = json["link"] == null
         ? null
         : (json["link"] as List).map((e) => VTHotspotLink.fromJson(e)).toList();
+    totalHospot = {};
+    if (label != null && link != null) {
+      for (var i = 0; i < label!.length; i++) {
+        totalHospot!['label$i'] = label![i];
+      }
+      for (var i = 0; i < link!.length; i++) {
+        totalHospot!['link$i'] = link![i];
+      }
+    }
+  }
+
+  addLable(VTHotspotLable l) {
+    if (label != null) {
+      totalHospot!['label${label!.length}'] = l;
+      label!.add(l);
+    } else {
+      label = [];
+      label!.add(l);
+      totalHospot!['label0'] = l;
+    }
+  }
+
+  addLink(VTHotspotLink l) {
+    if (label != null) {
+      totalHospot!['link${link!.length}'] = l;
+      link!.add(l);
+    } else {
+      link = [];
+      link!.add(l);
+      totalHospot!['link0'] = l;
+    }
   }
 
   Map<String, dynamic> toJson() {
