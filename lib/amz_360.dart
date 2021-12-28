@@ -108,6 +108,23 @@ class Amz360 {
     }
   }
 
+  Future<ResponseVtProject> deleteImageFromProject(
+      {required int idProject,
+      required int idImage,
+      OnError? onError,
+      OnSuccess? onSuccess}) async {
+    if (_apiKey != null) {
+      return await api.deleteImageFromProject(
+          projectId: idProject,
+          imageId: idImage,
+          apiKey: _apiKey!,
+          onError: onError,
+          onSuccess: onSuccess);
+    } else {
+      throw Exception("Please set client with apikey");
+    }
+  }
+
   //
   Future<ResponseVtProject> deleteProject(
       {required int id, OnError? onError, OnSuccess? onSuccess}) async {
@@ -188,13 +205,10 @@ class Amz360 {
           y: Amz360Utils.shared.convertYtoServer(y),
           z: Amz360Utils.shared.convertZtoServer(x, y),
           onError: onError,
-          onSuccess: onSuccess, toImageId: toImageId);
-      hotspotLinkStreamController.add(VTHotspotLink(
-          x: x,
-          y: y,
-          id: hotspot.id,
-          toImage: hotspot.toImage
-          ));
+          onSuccess: onSuccess,
+          toImageId: toImageId);
+      hotspotLinkStreamController.add(
+          VTHotspotLink(x: x, y: y, id: hotspot.id, toImage: hotspot.toImage));
     } else {
       throw Exception("Please set client with apikey");
     }

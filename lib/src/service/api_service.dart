@@ -103,7 +103,7 @@ class ApiService {
     }
   }
 
-Future<ResponseVtProject> addImageToProject(
+  Future<ResponseVtProject> addImageToProject(
       {required String apiKey,
       required int projectId,
       required List<File> images,
@@ -114,12 +114,15 @@ Future<ResponseVtProject> addImageToProject(
       final map = <String, dynamic>{};
       var multipartFile = [];
       map['action'] = "add_image";
-     for (var item in images) {
-      multipartFile.add(await MultipartFile.fromFile(item.path));
-    }
+      for (var item in images) {
+        multipartFile.add(await MultipartFile.fromFile(item.path));
+      }
+      map['img[]'] = multipartFile;
       var body = FormData.fromMap(map);
-      final response = await dio
-          .post("project/update/$projectId?apikey=$apiKey", data: body,onSendProgress: progressCallback);
+      final response = await dio.post(
+          "project/update/$projectId?apikey=$apiKey",
+          data: body,
+          onSendProgress: progressCallback);
       final data = jsonDecode(response.toString());
       if (data['status'] == "success") {
         if (onSuccess != null) onSuccess();
@@ -140,14 +143,13 @@ Future<ResponseVtProject> addImageToProject(
       {required String apiKey,
       required int projectId,
       required int imageId,
-      OnUploadProgressCallback? progressCallback,
       OnSuccess? onSuccess,
       OnError? onError}) async {
     try {
       final map = <String, dynamic>{};
       map['action'] = "remove_image";
       map['image_id'] = imageId;
-     
+
       var body = FormData.fromMap(map);
       final response = await dio
           .post("project/update/$projectId?apikey=$apiKey", data: body);
@@ -302,7 +304,6 @@ Future<ResponseVtProject> addImageToProject(
       OnSuccess? onSuccess,
       OnError? onError}) async {
     final map = <String, dynamic>{};
-    map['image_id'] = imageId;
     map['to_image'] = toImageId;
     map['positions_x'] = "$x";
     map['positions_y'] = "$y";
@@ -356,6 +357,4 @@ Future<ResponseVtProject> addImageToProject(
       throw Exception(e.message);
     }
   }
-
-  
 }

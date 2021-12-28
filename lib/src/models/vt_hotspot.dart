@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class VTHotspotLink {
   int? id;
   HotspotPosition? _positions;
-  int? toImage;
+  dynamic toImage;
   double? x;
   double? y;
   Widget? widget;

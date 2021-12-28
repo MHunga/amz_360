@@ -32,6 +32,112 @@ enum Amz360ViewType {
   viewOnlyImageInScene
 }
 
+class Amz360View extends _Amz360Scence {
+  const Amz360View.client(
+      {Key? key,
+      required int id,
+      Widget? textHotspotIcon,
+      Widget? imageHotspotIcon,
+      Widget? videoHotspotIcon,
+      Widget? toOtherImageHotspotIcon,
+      Widget? placeholderLoadingProject,
+      Widget? placeholderLoadingImage,
+      double autoRotationSpeed = 0,
+      Amz360ViewType displayMode = Amz360ViewType.view360,
+      bool enableSensorControl = false,
+      double minZoom = 1.0,
+      double maxZoom = 5.0,
+      double zoom = 1.0,
+      EventCallback? onLongPressEnd,
+      EventCallback? onLongPressMoveUpdate,
+      EventCallback? onLongPressStart,
+      EventCallback? onTap,
+      EventCallback? onViewChanged,
+      bool showControl = false})
+      :
+        //assert(showControl != true || controlIcons != null),
+        super(
+            key: key,
+            fromClient: true,
+            idProject: id,
+            autoRotationSpeed: autoRotationSpeed,
+            textIcon: textHotspotIcon,
+            imageIcon: imageHotspotIcon,
+            videoIcon: videoHotspotIcon,
+            toImageIcon: toOtherImageHotspotIcon,
+            placeholderLoadingImage: placeholderLoadingImage,
+            placeholderLoadingProject: placeholderLoadingProject,
+            displayMode: displayMode,
+            enableSensorControl: enableSensorControl,
+            minZoom: minZoom,
+            maxZoom: maxZoom,
+            zoom: zoom,
+            onLongPressEnd: onLongPressEnd,
+            onLongPressMoveUpdate: onLongPressMoveUpdate,
+            onLongPressStart: onLongPressStart,
+            onTap: onTap,
+            onViewChanged: onViewChanged,
+            showControl: showControl);
+
+  const Amz360View.url({
+    Key? key,
+    required String imageUrl,
+    double autoRotationSpeed = 0,
+    Amz360ViewType displayMode = Amz360ViewType.view360,
+    bool enableSensorControl = false,
+    double minZoom = 1.0,
+    double maxZoom = 5.0,
+    EventCallback? onLongPressEnd,
+    EventCallback? onLongPressMoveUpdate,
+    EventCallback? onLongPressStart,
+    EventCallback? onTap,
+    EventCallback? onViewChanged,
+  }) : super(
+            key: key,
+            fromClient: false,
+            imageUrl: imageUrl,
+            autoRotationSpeed: autoRotationSpeed,
+            displayMode: displayMode,
+            enableSensorControl: enableSensorControl,
+            minZoom: minZoom,
+            maxZoom: maxZoom,
+            onLongPressEnd: onLongPressEnd,
+            onLongPressMoveUpdate: onLongPressMoveUpdate,
+            onLongPressStart: onLongPressStart,
+            onTap: onTap,
+            onViewChanged: onViewChanged,
+            showControl: false);
+
+  const Amz360View.asset({
+    Key? key,
+    required String imageAsset,
+    double autoRotationSpeed = 0,
+    Amz360ViewType displayMode = Amz360ViewType.view360,
+    bool enableSensorControl = false,
+    double minZoom = 1.0,
+    double maxZoom = 5.0,
+    EventCallback? onLongPressEnd,
+    EventCallback? onLongPressMoveUpdate,
+    EventCallback? onLongPressStart,
+    EventCallback? onTap,
+    EventCallback? onViewChanged,
+  }) : super(
+            key: key,
+            fromClient: false,
+            imageAsset: imageAsset,
+            autoRotationSpeed: autoRotationSpeed,
+            displayMode: displayMode,
+            enableSensorControl: enableSensorControl,
+            minZoom: minZoom,
+            maxZoom: maxZoom,
+            onLongPressEnd: onLongPressEnd,
+            onLongPressMoveUpdate: onLongPressMoveUpdate,
+            onLongPressStart: onLongPressStart,
+            onTap: onTap,
+            onViewChanged: onViewChanged,
+            showControl: false);
+}
+
 class _Amz360Scence extends StatefulWidget {
   final bool fromClient;
 
@@ -81,6 +187,10 @@ class _Amz360Scence extends StatefulWidget {
 
   final Widget? toImageIcon;
 
+  final Widget? placeholderLoadingProject;
+
+  final Widget? placeholderLoadingImage;
+
   final bool showControl;
 
   final String? imageUrl;
@@ -102,14 +212,15 @@ class _Amz360Scence extends StatefulWidget {
       this.autoRotationSpeed = 0,
       this.enableSensorControl = false,
       this.displayMode = Amz360ViewType.view360,
-      //this.controlIcons = const [],
       this.showControl = false,
       this.imageUrl,
       this.imageAsset,
       this.textIcon,
       this.imageIcon,
       this.videoIcon,
-      this.toImageIcon})
+      this.toImageIcon,
+      this.placeholderLoadingProject,
+      this.placeholderLoadingImage})
       : super(key: key);
 
   @override
@@ -139,9 +250,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   final double _dampingFactor = 0.05;
   final double _animateDirection = 1.0;
   late AnimationController _controller;
-
-  //late AnimationController _moveController;
-  //late Animation<double> _scaleAnimation;
   late Animation<double> moveYAnimation;
   double screenOrientation = 0.0;
   Vector3 orientation = Vector3(0, radians(90), 0);
@@ -179,9 +287,9 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     initProject();
   }
 
-  initProject()async{
+  initProject() async {
     if (widget.fromClient) {
-    await  _getProject(widget.idProject);
+      await _getProject(widget.idProject);
     }
 
     latitude = degrees(0);
@@ -198,37 +306,34 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     _addHotspotLableSubCription =
         Amz360.instance.hotspotLableStreamController.stream.listen((hotspot) {
       if (vtProject != null) {
-        if(vtProject!.currentImage != null){
+        if (vtProject!.currentImage != null) {
           if (vtProject!.currentImage!.label != null) {
-          vtProject!.currentImage!.label!.add(hotspot);
-        } else {
-          vtProject!.currentImage!.label = [];
-          vtProject!.currentImage!.label!.add(hotspot);
+            vtProject!.currentImage!.label!.add(hotspot);
+          } else {
+            vtProject!.currentImage!.label = [];
+            vtProject!.currentImage!.label!.add(hotspot);
+          }
+          _streamController.add(null);
         }
-        _streamController.add(null);
-        }
-        
       }
     });
 
     _addHotspotLinkSubCription =
         Amz360.instance.hotspotLinkStreamController.stream.listen((hotspot) {
-          if(vtProject != null){
-            if (vtProject!.currentImage != null) {
-        if (vtProject!.currentImage!.link != null) {
-          vtProject!.currentImage!.link!.add(hotspot);
-        } else {
-          vtProject!.currentImage!.link = [];
-          vtProject!.currentImage!.link!.add(hotspot);
-        }
-        _streamController.add(null);
-      }
+      if (vtProject != null) {
+        if (vtProject!.currentImage != null) {
+          if (vtProject!.currentImage!.link != null) {
+            vtProject!.currentImage!.link!.add(hotspot);
+          } else {
+            vtProject!.currentImage!.link = [];
+            vtProject!.currentImage!.link!.add(hotspot);
           }
-      
+          _streamController.add(null);
+        }
+      }
     });
     _controller.repeat();
   }
-
 
   _getProject(int? idProject) async {
     setState(() {
@@ -260,8 +365,9 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   @override
   Widget build(BuildContext context) {
     if (widget.fromClient && vtProject == null) {
-      return const Material(
-          child: Center(child: CircularProgressIndicator.adaptive()));
+      return widget.placeholderLoadingProject ??
+          const Material(
+              child: Center(child: CircularProgressIndicator.adaptive()));
     }
 
     if (widget.displayMode == Amz360ViewType.viewOriginalImage) {
@@ -287,10 +393,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
           children: [
             Stack(
               children: [
-                // FadeTransition(
-                //     opacity: Tween<double>(begin: 1, end: 0.5)
-                //         .animate(_moveController),
-                //     child:),
                 ScenceView(onSceneCreated: _onSceneCreated),
                 if (widget.fromClient)
                   StreamBuilder(
@@ -302,7 +404,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                           return const SizedBox.shrink();
                         }
                       }),
-
                 AnimatedBuilder(
                   animation: fadeAnimationController,
                   builder: (context, child) {
@@ -350,11 +451,12 @@ class _Amz360ScenceState extends State<_Amz360Scence>
               stream: loadImageStreamController.stream,
               builder: (context, snapshot) {
                 if (snapshot.data != null) {
-                  return Material(
-                    child: LinearProgressIndicator(
-                      value: snapshot.data,
-                    ),
-                  );
+                  return widget.placeholderLoadingImage ??
+                      Material(
+                        child: LinearProgressIndicator(
+                          value: snapshot.data,
+                        ),
+                      );
                 } else {
                   return const SizedBox.shrink();
                 }
@@ -370,8 +472,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     final List<Widget> widgets = <Widget>[];
     if (vtProject!.currentImage!.label != null && scene != null) {
       for (var hotspot in vtProject!.currentImage!.label!) {
-        // hotspot.showControlListenter(widget.showControl);
-        // print("HOTSPOT [${hotspot.x},${hotspot.y}]");
         if (hotspot.text != null) {
           hotspot.icon = widget.textIcon;
         }
@@ -414,9 +514,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                 descriptions: hotspot.text,
                 imageUrl: hotspot.imageUrl,
                 videoIframe: hotspot.videoUrl,
-                callbackMovement: () {
-                  // callbackMovement?.call(idImage, latitude, longitude);
-                },
+                callbackMovement: () {},
               ),
             ),
           ),
@@ -427,8 +525,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     }
     if (vtProject!.currentImage!.link != null && scene != null) {
       for (var hotspot in vtProject!.currentImage!.link!) {
-        // hotspot.showControlListenter(widget.showControl);
-        // print("HOTSPOT [${hotspot.x},${hotspot.y}]");
         hotspot.icon = widget.toImageIcon;
         final Vector3 pos = Amz360Utils.shared
             .positionFromLatLon(scene!, hotspot.y!, hotspot.x!);
@@ -448,7 +544,8 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                 callbackDeleteLable: () async {
                   await Amz360.instance
                       .deleteHotspotToOtherImage(
-                          imageId: vtProject!.currentImage!.image!.id!, hotspotId: hotspot.id!)
+                          imageId: vtProject!.currentImage!.image!.id!,
+                          hotspotId: hotspot.id!)
                       .then((value) {
                     if (value) {
                       vtProject!.currentImage!.link!
@@ -457,23 +554,25 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                   });
                 },
                 icon: hotspot.icon ??
-                    const Icon(Icons.moving_outlined, color: Color(0xffffffff)),
+                    const Icon(Icons.arrow_circle_up_rounded,
+                        color: Color(0xffffffff)),
                 iconType: IconType.movement,
                 callbackMovement: () async {
                   int index = 0;
                   for (var i = 0; i < clientTextures.length; i++) {
-                    if (hotspot.toImage == clientTextures[i].idImage) {
+                    if (hotspot.toImage.toString() ==
+                        clientTextures[i].idImage.toString()) {
                       index = i;
                       break;
                     }
                   }
                   if (clientTextures[index].imageInfo != null) {
-                   await _toOtherImage(index);
+                    await _toOtherImage(index);
                   } else {
                     clientTextures[index].progressCallback = (progress) async {
                       loadImageStreamController.add(progress);
                       if (progress == null) {
-                      await _toOtherImage(index);
+                        await _toOtherImage(index);
                       }
                     };
                   }
@@ -494,8 +593,9 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     fadeAnimationController.forward();
     await Future.delayed(const Duration(milliseconds: 300));
     _updateTexture(clientTextures[index].imageInfo!, false);
-    vtProject!.currentImage = vtProject!.images!.firstWhere(
-        (element) => element.image!.id == clientTextures[index].idImage);
+    vtProject!.currentImage = vtProject!.images!.firstWhere((element) =>
+        element.image!.id.toString() ==
+        clientTextures[index].idImage.toString());
     _streamController.add(null);
     fadeAnimationController.reverse();
   }
@@ -521,8 +621,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     final Vector3 o = Amz360Utils.shared.positionToLatLon(
         scene!, details.localPosition.dx, details.localPosition.dy);
     if (widget.onLongPressMoveUpdate != null) {
-      widget.onLongPressMoveUpdate!(
-          degrees(o.x), degrees(-o.y), vtProject);
+      widget.onLongPressMoveUpdate!(degrees(o.x), degrees(-o.y), vtProject);
     }
   }
 
@@ -552,14 +651,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
         scene!.camera.viewportHeight;
     _lastZoom ??= scene!.camera.zoom;
     zoomDelta += _lastZoom! * details.scale - (scene!.camera.zoom + zoomDelta);
-    // if (widget.sensorControl == SensorControl.None &&
-    //     !_controller.isAnimating) {
-    //   _controller.reset();
-    //   if (widget.animSpeed != 0) {
-    //     _controller.repeat();
-    //   } else
-    //     _controller.forward();
-    // }
   }
 
   void _updateSensorControl() {
@@ -666,15 +757,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     // animate zomming
     final double zoom = scene!.camera.zoom + zoomDelta * _dampingFactor;
     zoomDelta *= 1 - _dampingFactor;
-    // scene!.camera.zoom = zoom.clamp(widget.minZoom, widget.maxZoom);
     scene!.camera.zoom = zoom.clamp(widget.minZoom, widget.maxZoom);
-    // stop animation if not needed
-    // if (latitudeDelta.abs() < 0.001 &&
-    //     longitudeDelta.abs() < 0.001 &&
-    //     zoomDelta.abs() < 0.001) {
-    //   // if (widget.animSpeed == 0 && _controller.isAnimating) _controller.stop();
-    // }
-
     // rotate for screen orientation
     Quaternion q = Quaternion.axisAngle(Vector3(0, 0, 1), screenOrientation);
     // rotate for device orientation
@@ -697,13 +780,6 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     if (maxLon - minLon < math.pi * 2) {
       if (lon + longitude < minLon || lon + longitude > maxLon) {
         longitude = (lon + longitude < minLon ? minLon : maxLon) - lon;
-        // reverse rotation when reaching the boundary
-        // if (widget.animSpeed != 0) {
-        //   if (widget.animReverse)
-        //     _animateDirection *= -1.0;
-        //   else
-        //     _controller.stop();
-        // }
       }
     }
     o.x = lon;
@@ -729,106 +805,4 @@ class _Amz360ScenceState extends State<_Amz360Scence>
       _controller.stop();
     }
   }
-}
-
-class Amz360View extends _Amz360Scence {
-  const Amz360View.client(
-      {Key? key,
-      required int id,
-      required Widget textHotspotIcon,
-      required Widget imageHotspotIcon,
-      required Widget videoHotspotIcon,
-      required Widget toOtherImageHotspotIcon,
-      double autoRotationSpeed = 0,
-      Amz360ViewType displayMode = Amz360ViewType.view360,
-      bool enableSensorControl = false,
-      double minZoom = 1.0,
-      double maxZoom = 5.0,
-      double zoom = 1.0,
-      EventCallback? onLongPressEnd,
-      EventCallback? onLongPressMoveUpdate,
-      EventCallback? onLongPressStart,
-      EventCallback? onTap,
-      EventCallback? onViewChanged,
-      bool showControl = false})
-      :
-        //assert(showControl != true || controlIcons != null),
-        super(
-            key: key,
-            fromClient: true,
-            idProject: id,
-            autoRotationSpeed: autoRotationSpeed,
-            textIcon: textHotspotIcon,
-            imageIcon: imageHotspotIcon,
-            videoIcon: videoHotspotIcon,
-            toImageIcon: toOtherImageHotspotIcon,
-            displayMode: displayMode,
-            enableSensorControl: enableSensorControl,
-            minZoom: minZoom,
-            maxZoom: maxZoom,
-            zoom: zoom,
-            onLongPressEnd: onLongPressEnd,
-            onLongPressMoveUpdate: onLongPressMoveUpdate,
-            onLongPressStart: onLongPressStart,
-            onTap: onTap,
-            onViewChanged: onViewChanged,
-            showControl: showControl);
-
-  const Amz360View.url({
-    Key? key,
-    required String imageUrl,
-    double autoRotationSpeed = 0,
-    Amz360ViewType displayMode = Amz360ViewType.view360,
-    bool enableSensorControl = false,
-    double minZoom = 1.0,
-    double maxZoom = 5.0,
-    EventCallback? onLongPressEnd,
-    EventCallback? onLongPressMoveUpdate,
-    EventCallback? onLongPressStart,
-    EventCallback? onTap,
-    EventCallback? onViewChanged,
-  }) : super(
-            key: key,
-            fromClient: false,
-            imageUrl: imageUrl,
-            autoRotationSpeed: autoRotationSpeed,
-            displayMode: displayMode,
-            enableSensorControl: enableSensorControl,
-            minZoom: minZoom,
-            maxZoom: maxZoom,
-            onLongPressEnd: onLongPressEnd,
-            onLongPressMoveUpdate: onLongPressMoveUpdate,
-            onLongPressStart: onLongPressStart,
-            onTap: onTap,
-            onViewChanged: onViewChanged,
-            showControl: false);
-
-  const Amz360View.asset({
-    Key? key,
-    required String imageAsset,
-    double autoRotationSpeed = 0,
-    Amz360ViewType displayMode = Amz360ViewType.view360,
-    bool enableSensorControl = false,
-    double minZoom = 1.0,
-    double maxZoom = 5.0,
-    EventCallback? onLongPressEnd,
-    EventCallback? onLongPressMoveUpdate,
-    EventCallback? onLongPressStart,
-    EventCallback? onTap,
-    EventCallback? onViewChanged,
-  }) : super(
-            key: key,
-            fromClient: false,
-            imageAsset: imageAsset,
-            autoRotationSpeed: autoRotationSpeed,
-            displayMode: displayMode,
-            enableSensorControl: enableSensorControl,
-            minZoom: minZoom,
-            maxZoom: maxZoom,
-            onLongPressEnd: onLongPressEnd,
-            onLongPressMoveUpdate: onLongPressMoveUpdate,
-            onLongPressStart: onLongPressStart,
-            onTap: onTap,
-            onViewChanged: onViewChanged,
-            showControl: false);
 }

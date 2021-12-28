@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -51,7 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   StreamController<double?> progressController = StreamController.broadcast();
-  StreamController<List<File>> selectImageController = StreamController.broadcast();
+  StreamController<List<File>> selectImageController =
+      StreamController.broadcast();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
             future: Amz360.instance.getListProject(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                print(snapshot.error);
+                return Center(child: Text(snapshot.error.toString()));
               }
               if (snapshot.hasData) {
                 final list = snapshot.data!.data!;
@@ -192,32 +192,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         }),
                     const SizedBox(height: 8),
                     StreamBuilder<List<File>>(
-                      initialData: const [],
-                      stream: selectImageController.stream,
-                      builder: (context, snapshot){
-                        if(snapshot.data!.isEmpty){
-return  ElevatedButton.icon(
-                          onPressed: () async {
-                            await _pickingImage();
-                          },
-                          icon: const Icon(Icons.upload),
-                          label: const Text("Select Image"));
-                        }else{
-                          return SizedBox(
-                        height: 150,
-                        width: MediaQuery.of(context).size.width/1.5,
-                        child: ListView.builder(
-                            itemCount: snapshot.data!.length,
-                            scrollDirection: Axis.horizontal,
-                            itemBuilder: (context, index) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10),
-                                  child: Image.file( snapshot.data![index]),
-                                )),
-                      );
-                        }
-                      })
-                     
+                        initialData: const [],
+                        stream: selectImageController.stream,
+                        builder: (context, snapshot) {
+                          if (snapshot.data!.isEmpty) {
+                            return ElevatedButton.icon(
+                                onPressed: () async {
+                                  await _pickingImage();
+                                },
+                                icon: const Icon(Icons.upload),
+                                label: const Text("Select Image"));
+                          } else {
+                            return SizedBox(
+                              height: 150,
+                              width: MediaQuery.of(context).size.width / 1.5,
+                              child: ListView.builder(
+                                  itemCount: snapshot.data!.length,
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10),
+                                        child:
+                                            Image.file(snapshot.data![index]),
+                                      )),
+                            );
+                          }
+                        })
                   ],
                 ),
               ),
@@ -228,20 +228,19 @@ return  ElevatedButton.icon(
                     },
                     child: const Text("Cancel")),
                 StreamBuilder<List<File>>(
-                  initialData: const [],
-                  stream: selectImageController.stream,
-                  builder: (context, snapshot) {
-                    return TextButton(
-                        onPressed: snapshot.data!.isNotEmpty
-                            ? () {
-                                if (formKey.currentState!.validate()) {
-                                  Navigator.pop(context, snapshot.data!);
+                    initialData: const [],
+                    stream: selectImageController.stream,
+                    builder: (context, snapshot) {
+                      return TextButton(
+                          onPressed: snapshot.data!.isNotEmpty
+                              ? () {
+                                  if (formKey.currentState!.validate()) {
+                                    Navigator.pop(context, snapshot.data!);
+                                  }
                                 }
-                              }
-                            : null,
-                        child: const Text("OK"));
-                  }
-                )
+                              : null,
+                          child: const Text("OK"));
+                    })
               ],
             )).then((value) async {
       if (value != null) {
@@ -258,15 +257,15 @@ return  ElevatedButton.icon(
                 }
               },
             )
-            .then((value) => setState((){
-              titleController.clear();
-              descriptionController.clear();
-              selectImageController.add([]);
-            }));
-      }else{
-         titleController.clear();
-              descriptionController.clear();
-              selectImageController.add([]);
+            .then((value) => setState(() {
+                  titleController.clear();
+                  descriptionController.clear();
+                  selectImageController.add([]);
+                }));
+      } else {
+        titleController.clear();
+        descriptionController.clear();
+        selectImageController.add([]);
       }
     });
   }
@@ -279,7 +278,6 @@ return  ElevatedButton.icon(
           list.add(File(item.path));
         }
         selectImageController.add(list);
-        
       }
     });
   }
