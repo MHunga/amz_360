@@ -48,6 +48,8 @@ class _ViewVRState extends State<ViewVR> {
                   )
                 : Amz360View.client(
                     id: widget.id,
+                    imageHotspotIcon: const Icon(Icons.image, color: Colors.white,),
+                    videoHotspotIcon: const Icon(Icons.ondemand_video_rounded, color: Colors.white,),
                     autoRotationSpeed: 0.0,
                     enableSensorControl: false,
                     showControl: true,

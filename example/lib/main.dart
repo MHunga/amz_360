@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: AspectRatio(
                               aspectRatio: 16 / 9,
                               child: Image.network(
-                                list[index].images!.thumbnailUrl!,
+                                list[index].images!.thumbnailUrl ?? list[index].images!.url!,
                                 fit: BoxFit.cover,
                               ),
                             ),

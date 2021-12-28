@@ -520,9 +520,10 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                     });
                   }
                 },
-                icon: hotspot.icon ?? hotspot is VTHotspotLable
-                    ? const Icon(Icons.info, color: Color(0xffffffff))
-                    : const Icon(Icons.arrow_circle_up_rounded,
+                icon:  hotspot is VTHotspotLable
+                    ? hotspot.icon ?? const Icon(Icons.info, color: Color(0xffffffff))
+                    : hotspot is VTHotspotLink? hotspot.icon ?? const Icon(Icons.arrow_circle_up_rounded,
+                        color: Color(0xffffffff)) : const Icon(Icons.info,
                         color: Color(0xffffffff)),
                 iconType: hotspot is VTHotspotLable
                     ? IconType.info
