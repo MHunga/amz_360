@@ -18,7 +18,6 @@ import 'dart:math' as math;
 import 'package:amz_360/src/scene/object.dart';
 
 import 'control_chervon_painter.dart';
-import 'hotspot_button.dart';
 
 typedef EventCallback = Function(double x, double y, VTProject? infoProject);
 
