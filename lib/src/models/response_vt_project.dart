@@ -69,8 +69,8 @@ class VTProject {
 
 class VTImage {
   VTImageDetails? image;
-  List<VTHotspotLable>? label;
-  List<VTHotspotLink>? link;
+  List<VTHotspotLable>? label = [];
+  List<VTHotspotLink>? link = [];
   Map<String, dynamic>? totalHospot;
   VTImage({this.image, this.label, this.link});
 
@@ -78,12 +78,12 @@ class VTImage {
     image =
         json["image"] == null ? null : VTImageDetails.fromJson(json["image"]);
     label = json["label"] == null
-        ? null
+        ? []
         : (json["label"] as List)
             .map((e) => VTHotspotLable.fromJson(e))
             .toList();
     link = json["link"] == null
-        ? null
+        ? []
         : (json["link"] as List).map((e) => VTHotspotLink.fromJson(e)).toList();
     totalHospot = {};
     if (label != null && link != null) {

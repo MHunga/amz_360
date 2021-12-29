@@ -11,6 +11,7 @@ import 'package:amz_360/src/scene/scene_view.dart';
 import 'package:amz_360/src/sensor/sensor.dart';
 import 'package:amz_360/src/utils/utils.dart';
 import 'package:amz_360/src/vibrate/vibrate.dart';
+import 'package:amz_360/src/view/hotspot_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'dart:math' as math;
@@ -459,11 +460,14 @@ class _Amz360ScenceState extends State<_Amz360Scence>
   }
 
   Widget buildHotspotWidgets() {
-    final List<Widget> widgets = <Widget>[];
-    if (vtProject!.currentImage!.totalHospot!.isNotEmpty && scene != null) {
-      for (var hotspot
-          in vtProject!.currentImage!.totalHospot!.values.toList()) {
-        if (hotspot is VTHotspotLable) {
+    if (scene != null) {
+      return Stack(
+          children: List.generate(
+              vtProject!.currentImage!.label!.length +
+                  vtProject!.currentImage!.link!.length, (index) {
+        dynamic hotspot;
+        if (index < vtProject!.currentImage!.label!.length) {
+          hotspot = vtProject!.currentImage!.label![index];
           if (hotspot.text != null) {
             hotspot.icon = widget.textIcon;
           }
@@ -473,98 +477,51 @@ class _Amz360ScenceState extends State<_Amz360Scence>
           if (hotspot.videoUrl != null) {
             hotspot.icon = widget.videoIcon;
           }
-        } else if (hotspot is VTHotspotLink) {
+        } else {
+          hotspot = vtProject!.currentImage!
+              .link![index - vtProject!.currentImage!.label!.length];
           hotspot.icon = widget.toImageIcon;
         }
-
-        final Vector3 pos = Amz360Utils.shared
-            .positionFromLatLon(scene!, hotspot.y!, hotspot.x!);
-        const Offset orgin = Offset(30, 25);
-        final Matrix4 transform = scene!.camera.lookAtMatrix *
-            Amz360Utils.shared.matrixFromLatLon(hotspot.y!, hotspot.x!);
-        final Widget child = Positioned(
-          left: pos.x - orgin.dx,
-          top: pos.y - orgin.dy,
-          child: Transform(
-            origin: orgin,
-            transform: transform..invert(),
-            child: Offstage(
-              offstage: pos.z < 0,
-              child: HotspotButton(
-                isShowControl: widget.showControl,
-                callbackDeleteLable: () async {
-                  if (hotspot is VTHotspotLable) {
-                    await Amz360.instance
-                        .deleteHotspotLable(
-                            imageId: hotspot.imageId!, hotspotId: hotspot.id!)
-                        .then((v) {
-                      if (v) {
-                        vtProject!.currentImage!.label!
-                            .removeWhere((element) => element.id == hotspot.id);
-                        vtProject!.currentImage!.totalHospot!.removeWhere(
-                            (key, element) => element.id == hotspot.id);
-                      }
-                    });
-                  } else if (hotspot is VTHotspotLink) {
-                    await Amz360.instance
-                        .deleteHotspotToOtherImage(
-                            imageId: vtProject!.currentImage!.image!.id!,
-                            hotspotId: hotspot.id!)
-                        .then((v) {
-                      if (v) {
-                        vtProject!.currentImage!.link!
-                            .removeWhere((element) => element.id == hotspot.id);
-                        vtProject!.currentImage!.totalHospot!.removeWhere(
-                            (key, element) => element.id == hotspot.id);
-                      }
-                    });
+        return HotspotWidget(
+            scene: scene!,
+            hotspot: hotspot,
+            showControl: widget.showControl,
+            callbackRemove: () async {
+              if (hotspot is VTHotspotLable) {
+                vtProject!.currentImage!.label!
+                    .removeWhere((element) => element.id == hotspot.id);
+              } else if (hotspot is VTHotspotLink) {
+                vtProject!.currentImage!.link!
+                    .removeWhere((element) => element.id == hotspot.id);
+              }
+            },
+            callbackMovement: () async {
+              if (hotspot is VTHotspotLink) {
+                int index = 0;
+                for (var i = 0; i < clientTextures.length; i++) {
+                  if (hotspot.toImage.toString() ==
+                      clientTextures[i].idImage.toString()) {
+                    index = i;
+                    break;
                   }
-                },
-                icon:  hotspot is VTHotspotLable
-                    ? hotspot.icon ?? const Icon(Icons.info, color: Color(0xffffffff))
-                    : hotspot is VTHotspotLink? hotspot.icon ?? const Icon(Icons.arrow_circle_up_rounded,
-                        color: Color(0xffffffff)) : const Icon(Icons.info,
-                        color: Color(0xffffffff)),
-                iconType: hotspot is VTHotspotLable
-                    ? IconType.info
-                    : IconType.movement,
-                title: hotspot is VTHotspotLable ? hotspot.title : null,
-                descriptions: hotspot is VTHotspotLable ? hotspot.text : null,
-                imageUrl: hotspot is VTHotspotLable ? hotspot.imageUrl : null,
-                videoIframe:
-                    hotspot is VTHotspotLable ? hotspot.videoUrl : null,
-                callbackMovement: () async {
-                  if (hotspot is VTHotspotLink) {
-                    int index = 0;
-                    for (var i = 0; i < clientTextures.length; i++) {
-                      if (hotspot.toImage.toString() ==
-                          clientTextures[i].idImage.toString()) {
-                        index = i;
-                        break;
-                      }
-                    }
-                    if (clientTextures[index].imageInfo != null) {
+                }
+                if (clientTextures[index].imageInfo != null) {
+                  await _toOtherImage(index);
+                } else {
+                  clientTextures[index].progressCallback = (progress) async {
+                    loadImageStreamController.add(progress);
+                    if (progress == null) {
                       await _toOtherImage(index);
-                    } else {
-                      clientTextures[index].progressCallback =
-                          (progress) async {
-                        loadImageStreamController.add(progress);
-                        if (progress == null) {
-                          await _toOtherImage(index);
-                        }
-                      };
                     }
-                  }
-                },
-              ),
-            ),
-          ),
-        );
-        widgets.add(child);
-      }
+                  };
+                }
+              }
+            },
+            imageId: vtProject!.currentImage!.image!.id!);
+      }));
     }
 
-    return Stack(children: widgets);
+    return const SizedBox.shrink();
   }
 
   _toOtherImage(int index) async {

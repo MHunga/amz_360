@@ -42,7 +42,6 @@ class _HotspotButtonState extends State<HotspotButton>
   late AnimationController controller;
   late Animation<double> scaleAnimation;
   StreamController<bool> showDeleteController = StreamController.broadcast();
-  YoutubePlayerController? _youtubeController;
   @override
   void initState() {
     super.initState();
@@ -50,15 +49,6 @@ class _HotspotButtonState extends State<HotspotButton>
         vsync: this, duration: const Duration(milliseconds: 500));
     scaleAnimation = Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(parent: controller, curve: Curves.easeOutQuart));
-    if (widget.videoIframe != null) {
-      _youtubeController = YoutubePlayerController(
-        initialVideoId: getIdFromEmbeded(widget.videoIframe!),
-        flags: const YoutubePlayerFlags(
-          autoPlay: false,
-          mute: false,
-        ),
-      );
-    }
   }
 
   @override
@@ -117,7 +107,14 @@ class _HotspotButtonState extends State<HotspotButton>
                                 ClipRRect(
                                     borderRadius: BorderRadius.circular(5),
                                     child: YoutubePlayer(
-                                      controller: _youtubeController!,
+                                      controller: YoutubePlayerController(
+                                        initialVideoId: getIdFromEmbeded(
+                                            widget.videoIframe!),
+                                        flags: const YoutubePlayerFlags(
+                                          autoPlay: false,
+                                          mute: false,
+                                        ),
+                                      ),
                                       showVideoProgressIndicator: true,
                                     )),
                             ],
