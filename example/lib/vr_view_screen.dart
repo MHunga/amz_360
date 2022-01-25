@@ -52,13 +52,42 @@ class _ViewVRState extends State<ViewVR> {
                   )
                 : Amz360View.client(
                     id: widget.id,
-                    imageHotspotIcon: const Icon(
-                      Icons.image,
-                      color: Colors.white,
+                    textHotspotIcon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: const Color(0xff558cd8), width: 5),
+                          color: Colors.white,
+                          shape: BoxShape.circle),
+                      child: const Icon(Icons.info_outlined, size: 16),
                     ),
-                    videoHotspotIcon: const Icon(
-                      Icons.ondemand_video_rounded,
-                      color: Colors.white,
+                    imageHotspotIcon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: const Color(0xff558cd8), width: 5),
+                          color: Colors.white,
+                          shape: BoxShape.circle),
+                      child: const Icon(Icons.image, size: 16),
+                    ),
+                    videoHotspotIcon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: const Color(0xff558cd8), width: 5),
+                          color: Colors.white,
+                          shape: BoxShape.circle),
+                      child: const Icon(Icons.ondemand_video_rounded, size: 16),
+                    ),
+                    toOtherImageHotspotIcon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                              color: const Color(0xff558cd8), width: 5),
+                          color: Colors.white,
+                          shape: BoxShape.circle),
+                      child:
+                          const Icon(Icons.arrow_circle_up_rounded, size: 16),
                     ),
                     autoRotationSpeed: 0.0,
                     enableSensorControl: false,
