@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:video_player/video_player.dart';
 
 enum IconType { info, movement }
@@ -115,18 +116,32 @@ class _HotspotButtonState extends State<HotspotButton>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(widget.title ?? "",
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600)),
+                              Html(data: widget.title ?? "", style: {
+                                "body": Style(
+                                    padding: EdgeInsets.zero,
+                                    margin: EdgeInsets.zero,
+                                    color: Colors.white,
+                                    fontSize: const FontSize(16),
+                                    fontWeight: FontWeight.w600),
+                                "p": Style(
+                                  padding: EdgeInsets.zero,
+                                  margin: EdgeInsets.zero,
+                                )
+                              }),
                               const SizedBox(height: 10),
                               if (widget.descriptions != null)
-                                Text(widget.descriptions ?? "",
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                    )),
+                                Html(data: widget.descriptions ?? "", style: {
+                                  "body": Style(
+                                    padding: EdgeInsets.zero,
+                                    margin: EdgeInsets.zero,
+                                    color: Colors.white,
+                                    fontSize: const FontSize(14),
+                                  ),
+                                  "p": Style(
+                                    padding: EdgeInsets.zero,
+                                    margin: EdgeInsets.zero,
+                                  )
+                                }),
                               if (widget.imageUrl != null)
                                 ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
@@ -149,7 +164,11 @@ class _HotspotButtonState extends State<HotspotButton>
                                                 : const Center(
                                                     child:
                                                         CircularProgressIndicator
-                                                            .adaptive(),
+                                                            .adaptive(
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation(
+                                                              Colors.white),
+                                                    ),
                                                   ),
                                           ),
                                         ));

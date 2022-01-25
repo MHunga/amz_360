@@ -491,6 +491,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
             child: Offstage(
               offstage: pos.z < 0,
               child: HotspotButton(
+                key: ValueKey(hotspot),
                 isShowControl: widget.showControl,
                 offStage: (pos.x - orgin.dx) < -100 ||
                     (pos.x - orgin.dx) > MediaQuery.of(context).size.width,
