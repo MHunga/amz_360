@@ -223,8 +223,9 @@ class ApiService {
       required double y,
       required double z,
       String? text,
-      String? idYoutubeVideo,
+      File? video,
       File? image,
+      OnUploadProgressCallback? progressCallback,
       OnSuccess? onSuccess,
       OnError? onError}) async {
     final map = <String, dynamic>{};
@@ -240,14 +241,15 @@ class ApiService {
       map['img[]'] = [await MultipartFile.fromFile(image.path)];
     }
 
-    if (idYoutubeVideo != null) {
-      map['video_url'] =
-          '<iframe width="560" height="315" src="https://www.youtube.com/embed/$idYoutubeVideo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    if (video != null) {
+      map['video'] = await MultipartFile.fromFile(video.path);
     }
     final body = FormData.fromMap(map);
     try {
-      final response = await dio
-          .post("image/$imageId/addinfospot?apikey=$apiKey", data: body);
+      final response = await dio.post(
+          "image/$imageId/addinfospot?apikey=$apiKey",
+          data: body,
+          onSendProgress: progressCallback);
       final data = jsonDecode(response.toString());
       if (data['status'] == "success") {
         if (onSuccess != null) onSuccess();
@@ -301,6 +303,7 @@ class ApiService {
       required double x,
       required double y,
       required double z,
+      OnUploadProgressCallback? progressCallback,
       OnSuccess? onSuccess,
       OnError? onError}) async {
     final map = <String, dynamic>{};
@@ -310,8 +313,10 @@ class ApiService {
     map['positions_z'] = "$z";
     final body = FormData.fromMap(map);
     try {
-      final response = await dio
-          .post("image/$imageId/addlinkspot?apikey=$apiKey", data: body);
+      final response = await dio.post(
+          "image/$imageId/addlinkspot?apikey=$apiKey",
+          data: body,
+          onSendProgress: progressCallback);
       final data = jsonDecode(response.toString());
       if (data['status'] == 'success') {
         if (onSuccess != null) onSuccess();

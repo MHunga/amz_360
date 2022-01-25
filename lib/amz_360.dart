@@ -141,9 +141,10 @@ class Amz360 {
       required String title,
       String? text,
       File? image,
-      String? idVideoYoutube,
+      File? video,
       required double x,
       required double y,
+      OnUploadProgressCallback? progressCallback,
       OnError? onError,
       OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
@@ -156,7 +157,8 @@ class Amz360 {
           z: Amz360Utils.shared.convertZtoServer(x, y),
           text: text,
           image: image,
-          idYoutubeVideo: idVideoYoutube,
+          video: video,
+          progressCallback: progressCallback,
           onError: onError,
           onSuccess: onSuccess);
       hotspotLableStreamController.add(VTHotspotLable(
@@ -195,6 +197,7 @@ class Amz360 {
       required int toImageId,
       required double x,
       required double y,
+      OnUploadProgressCallback? progressCallback,
       OnError? onError,
       OnSuccess? onSuccess}) async {
     if (_apiKey != null) {
@@ -205,6 +208,7 @@ class Amz360 {
           y: Amz360Utils.shared.convertYtoServer(y),
           z: Amz360Utils.shared.convertZtoServer(x, y),
           onError: onError,
+          progressCallback: progressCallback,
           onSuccess: onSuccess,
           toImageId: toImageId);
       hotspotLinkStreamController.add(

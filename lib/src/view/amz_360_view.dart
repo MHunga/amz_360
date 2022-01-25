@@ -492,6 +492,8 @@ class _Amz360ScenceState extends State<_Amz360Scence>
               offstage: pos.z < 0,
               child: HotspotButton(
                 isShowControl: widget.showControl,
+                offStage: (pos.x - orgin.dx) < -100 ||
+                    (pos.x - orgin.dx) > MediaQuery.of(context).size.width,
                 callbackDeleteLable: () async {
                   if (hotspot is VTHotspotLable) {
                     await Amz360.instance
@@ -520,19 +522,21 @@ class _Amz360ScenceState extends State<_Amz360Scence>
                     });
                   }
                 },
-                icon:  hotspot is VTHotspotLable
-                    ? hotspot.icon ?? const Icon(Icons.info, color: Color(0xffffffff))
-                    : hotspot is VTHotspotLink? hotspot.icon ?? const Icon(Icons.arrow_circle_up_rounded,
-                        color: Color(0xffffffff)) : const Icon(Icons.info,
-                        color: Color(0xffffffff)),
+                icon: hotspot is VTHotspotLable
+                    ? hotspot.icon ??
+                        const Icon(Icons.info, color: Color(0xffffffff))
+                    : hotspot is VTHotspotLink
+                        ? hotspot.icon ??
+                            const Icon(Icons.arrow_circle_up_rounded,
+                                color: Color(0xffffffff))
+                        : const Icon(Icons.info, color: Color(0xffffffff)),
                 iconType: hotspot is VTHotspotLable
                     ? IconType.info
                     : IconType.movement,
                 title: hotspot is VTHotspotLable ? hotspot.title : null,
                 descriptions: hotspot is VTHotspotLable ? hotspot.text : null,
                 imageUrl: hotspot is VTHotspotLable ? hotspot.imageUrl : null,
-                videoIframe:
-                    hotspot is VTHotspotLable ? hotspot.videoUrl : null,
+                videoUrl: hotspot is VTHotspotLable ? hotspot.videoUrl : null,
                 callbackMovement: () async {
                   if (hotspot is VTHotspotLink) {
                     int index = 0;

@@ -3,10 +3,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:amz_360/amz_360.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-enum HotspotType { text, image, link }
+enum HotspotType { text, image, video, link }
 
 class ViewVR extends StatefulWidget {
   final int id;
@@ -25,11 +26,14 @@ class _ViewVRState extends State<ViewVR> {
   StreamController<HotspotType> dialogController = StreamController.broadcast();
   StreamController<File?> selectImageHotspotController =
       StreamController.broadcast();
+  StreamController<File?> selectVideoHotspotController =
+      StreamController.broadcast();
   StreamController<int?> tOtherImageIdController = StreamController.broadcast();
   StreamController<bool> progressDialogController =
       StreamController.broadcast();
   bool reload = false;
   File? file;
+  File? video;
   int? toImageId;
   @override
   Widget build(BuildContext context) {
@@ -48,8 +52,14 @@ class _ViewVRState extends State<ViewVR> {
                   )
                 : Amz360View.client(
                     id: widget.id,
-                    imageHotspotIcon: const Icon(Icons.image, color: Colors.white,),
-                    videoHotspotIcon: const Icon(Icons.ondemand_video_rounded, color: Colors.white,),
+                    imageHotspotIcon: const Icon(
+                      Icons.image,
+                      color: Colors.white,
+                    ),
+                    videoHotspotIcon: const Icon(
+                      Icons.ondemand_video_rounded,
+                      color: Colors.white,
+                    ),
                     autoRotationSpeed: 0.0,
                     enableSensorControl: false,
                     showControl: true,
@@ -142,7 +152,7 @@ class _ViewVRState extends State<ViewVR> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text("TEXT",
                                     style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 14,
                                         color: type == HotspotType.text
                                             ? Colors.blue
                                             : Colors.grey)),
@@ -161,8 +171,27 @@ class _ViewVRState extends State<ViewVR> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text("IMAGE",
                                     style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 14,
                                         color: type == HotspotType.image
+                                            ? Colors.blue
+                                            : Colors.grey)),
+                              )),
+                        ),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: GestureDetector(
+                              onTap: type == HotspotType.video
+                                  ? null
+                                  : () {
+                                      dialogController.add(HotspotType.video);
+                                    },
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("VIDEO",
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        color: type == HotspotType.video
                                             ? Colors.blue
                                             : Colors.grey)),
                               )),
@@ -180,7 +209,7 @@ class _ViewVRState extends State<ViewVR> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text("LINK",
                                     style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 14,
                                         color: type == HotspotType.link
                                             ? Colors.blue
                                             : Colors.grey)),
@@ -231,6 +260,28 @@ class _ViewVRState extends State<ViewVR> {
                                         child: SizedBox(
                                           height: 150,
                                           child: Image.file(snapshot.data!),
+                                        ),
+                                      );
+                                    }
+                                  }),
+                            if (type == HotspotType.video)
+                              StreamBuilder<File?>(
+                                  initialData: null,
+                                  stream: selectVideoHotspotController.stream,
+                                  builder: (context, snapshot) {
+                                    if (snapshot.data == null) {
+                                      return ElevatedButton.icon(
+                                          onPressed: _pickingVideoHotspot,
+                                          icon: const Icon(Icons.upload),
+                                          label: const Text("Select Video"));
+                                    } else {
+                                      return GestureDetector(
+                                        onTap: _pickingVideoHotspot,
+                                        child: SizedBox(
+                                          height: 150,
+                                          child: Text(snapshot.data!.path
+                                              .split("/")
+                                              .last),
                                         ),
                                       );
                                     }
@@ -327,6 +378,19 @@ class _ViewVRState extends State<ViewVR> {
                               y: y);
                         }
                       }
+                      if (type == HotspotType.video) {
+                        if (video != null) {
+                          await Amz360.instance.addHotspotLable(
+                              idImage: projectInfo!.currentImage!.image!.id!,
+                              title: titleController.text,
+                              video: video,
+                              progressCallback: (byte, total) {
+                                log("$byte/$total");
+                              },
+                              x: x,
+                              y: y);
+                        }
+                      }
                       if (type == HotspotType.link) {
                         if (toImageId != null) {
                           await Amz360.instance.addHotspotToOtherImage(
@@ -351,6 +415,18 @@ class _ViewVRState extends State<ViewVR> {
       if (value != null) {
         file = File(value.path);
         selectImageHotspotController.add(file);
+      }
+    });
+  }
+
+  void _pickingVideoHotspot() async {
+    await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['mp4'],
+    ).then((value) {
+      if (value != null) {
+        video = File(value.files.single.path!);
+        selectVideoHotspotController.add(video);
       }
     });
   }
