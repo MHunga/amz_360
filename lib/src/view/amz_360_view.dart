@@ -653,7 +653,7 @@ class _Amz360ScenceState extends State<_Amz360Scence>
     this.scene = scene;
     scene.camera.near = 1.0;
     scene.camera.far = _radius + 10.0;
-    scene.camera.fov = 60;
+    scene.camera.fov = 75;
     scene.camera.zoom = widget.zoom;
     scene.camera.position.setFrom(Vector3(0, 0, 0.1));
     if (widget.fromClient && vtProject != null) {
