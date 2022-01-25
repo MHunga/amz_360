@@ -176,11 +176,11 @@ await Amz360.instance.deleteProject(id: id);
                 idImage: idImage!, title: "TESST", image: file, x: x, y: y);
       ```  
 
-    - Add video youtube hotspot: Need to pass `idVideoYoutube` value , 
+    - Add video hotspot: Need to pass `video` value , 
 
        ```dart
             await Amz360.instance.addHotspotLable(
-                idImage: idImage!, title: "TESST", idVideoYoutube: "idVideoYoutube", x: x, y: y);
+                idImage: idImage!, title: "TESST", video: video, x: x, y: y);
       ```
 
 12. Add the Hotspot to go to other image of project: 
