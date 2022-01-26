@@ -31,6 +31,8 @@ class _ViewVRState extends State<ViewVR> {
   StreamController<int?> tOtherImageIdController = StreamController.broadcast();
   StreamController<bool> progressDialogController =
       StreamController.broadcast();
+  StreamController<double?> progressDialogValueController =
+      StreamController.broadcast();
   bool reload = false;
   File? file;
   File? video;
@@ -252,9 +254,15 @@ class _ViewVRState extends State<ViewVR> {
                       stream: progressDialogController.stream,
                       builder: (context, snapshot) {
                         if (snapshot.data!) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(),
+                          return Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: StreamBuilder<double?>(
+                                stream: progressDialogValueController.stream,
+                                builder: (context, snapshot) {
+                                  return CircularProgressIndicator(
+                                    value: snapshot.data,
+                                  );
+                                }),
                           );
                         }
                         return Column(
@@ -389,6 +397,7 @@ class _ViewVRState extends State<ViewVR> {
                 TextButton(
                     onPressed: () async {
                       progressDialogController.add(true);
+                      progressDialogValueController.add(null);
                       if (type == HotspotType.text) {
                         await Amz360.instance.addHotspotLable(
                             idImage: projectInfo!.currentImage!.image!.id!,
@@ -403,6 +412,14 @@ class _ViewVRState extends State<ViewVR> {
                               idImage: projectInfo!.currentImage!.image!.id!,
                               title: titleController.text,
                               image: file,
+                              progressCallback: (sentBytes, totalBytes) {
+                                final progress = sentBytes / totalBytes;
+                                if (progress < 1) {
+                                  progressDialogValueController.add(progress);
+                                } else {
+                                  progressDialogValueController.add(null);
+                                }
+                              },
                               x: x,
                               y: y);
                         }
@@ -413,8 +430,13 @@ class _ViewVRState extends State<ViewVR> {
                               idImage: projectInfo!.currentImage!.image!.id!,
                               title: titleController.text,
                               video: video,
-                              progressCallback: (byte, total) {
-                                log("$byte/$total");
+                              progressCallback: (sentBytes, totalBytes) {
+                                final progress = sentBytes / totalBytes;
+                                if (progress < 1) {
+                                  progressDialogValueController.add(progress);
+                                } else {
+                                  progressDialogValueController.add(null);
+                                }
                               },
                               x: x,
                               y: y);

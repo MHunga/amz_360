@@ -142,8 +142,8 @@ class VTImageDetails {
 
   VTImageDetails.fromJson(Map<String, dynamic> json) {
     id = json["id"];
-    url = json["url"];
-    thumbnailUrl = json["thumbnail_url"];
+    url = json["url"].toString().replaceAll("https", "http");
+    thumbnailUrl = json["thumbnail_url"].toString().replaceAll("https", "http");
   }
 
   Map<String, dynamic> toJson() {
