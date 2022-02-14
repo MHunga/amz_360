@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:amz_360_example/progress_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'package:amz_360/amz_360.dart';
@@ -53,17 +54,19 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamController<List<File>> selectImageController =
       StreamController.broadcast();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  bool isDeleting = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("360 example"),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           _showCreateDialog(context);
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text("Tạo project"),
       ),
       body: Stack(
         children: [
@@ -94,7 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: AspectRatio(
                               aspectRatio: 16 / 9,
                               child: Image.network(
-                                list[index].images!.thumbnailUrl ?? list[index].images!.url!,
+                                list[index].images!.thumbnailUrl ??
+                                    list[index].images!.url!,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -117,10 +121,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextButton.styleFrom(
                                 backgroundColor: Colors.red),
                             onPressed: () async {
+                              setState(() {
+                                isDeleting = true;
+                              });
                               await Amz360.instance
                                   .deleteProject(id: list[index].id!)
                                   .then((value) {
-                                setState(() {});
+                                setState(() {
+                                  isDeleting = false;
+                                });
                               });
                             },
                             child: const Text("Xoá")),
@@ -153,7 +162,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   return const SizedBox.shrink();
                 }
-              })
+              }),
+          if (isDeleting)
+            const ProgressWidget(
+              text: "Đang xoá",
+            )
         ],
       ),
     );

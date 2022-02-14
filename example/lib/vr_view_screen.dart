@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:amz_360/amz_360.dart';
+import 'package:amz_360_example/progress_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,73 +35,136 @@ class _ViewVRState extends State<ViewVR> {
   StreamController<double?> progressDialogValueController =
       StreamController.broadcast();
   bool reload = false;
+  bool isDeleting = false;
   File? file;
   File? video;
   int? toImageId;
+  bool isEnableControl = true;
+  bool isEnableSensorControl = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            await _pickingImage();
+            // await _pickingImage();
+            _showBottom();
           },
           child: const Icon(Icons.image)),
       body: Stack(
         children: [
           SafeArea(
             child: reload
-                ? const Center(
-                    child: CircularProgressIndicator.adaptive(),
+                ? const ProgressWidget(
+                    text: "Đang khởi tạo lại project",
                   )
-                : Amz360View.client(
-                    id: widget.id,
-                    textHotspotIcon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color(0xff558cd8), width: 5),
-                          color: Colors.white,
-                          shape: BoxShape.circle),
-                      child: const Icon(Icons.info_outlined, size: 16),
-                    ),
-                    imageHotspotIcon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color(0xff558cd8), width: 5),
-                          color: Colors.white,
-                          shape: BoxShape.circle),
-                      child: const Icon(Icons.image, size: 16),
-                    ),
-                    videoHotspotIcon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color(0xff558cd8), width: 5),
-                          color: Colors.white,
-                          shape: BoxShape.circle),
-                      child: const Icon(Icons.ondemand_video_rounded, size: 16),
-                    ),
-                    toOtherImageHotspotIcon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color(0xff558cd8), width: 5),
-                          color: Colors.white,
-                          shape: BoxShape.circle),
-                      child:
-                          const Icon(Icons.arrow_circle_up_rounded, size: 16),
-                    ),
-                    autoRotationSpeed: 0.0,
-                    enableSensorControl: false,
-                    showControl: true,
-                    onTap: (x, y, projectInfo) {
-                      log("$x   $y");
-                    },
-                    onLongPressStart: (x, y, projectInfo) async {
-                      log("$x   $y");
-                      _showAddHotspotDialog(context, x, y, projectInfo);
-                    },
+                : Stack(
+                    children: [
+                      Amz360View.client(
+                        id: widget.id,
+                        textHotspotIcon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color(0xff558cd8), width: 5),
+                              color: Colors.white,
+                              shape: BoxShape.circle),
+                          child: const Icon(Icons.info_outlined, size: 16),
+                        ),
+                        imageHotspotIcon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color(0xff558cd8), width: 5),
+                              color: Colors.white,
+                              shape: BoxShape.circle),
+                          child: const Icon(Icons.image, size: 16),
+                        ),
+                        videoHotspotIcon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color(0xff558cd8), width: 5),
+                              color: Colors.white,
+                              shape: BoxShape.circle),
+                          child: const Icon(Icons.ondemand_video_rounded,
+                              size: 16),
+                        ),
+                        toOtherImageHotspotIcon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: const Color(0xff558cd8), width: 5),
+                              color: Colors.white,
+                              shape: BoxShape.circle),
+                          child: const Icon(Icons.arrow_circle_up_rounded,
+                              size: 16),
+                        ),
+                        autoRotationSpeed: 0.0,
+                        enableSensorControl: isEnableSensorControl,
+                        showControl: isEnableControl,
+                        onTap: (x, y, projectInfo) {
+                          log("$x   $y");
+                        },
+                        onLongPressStart: (x, y, projectInfo) async {
+                          log("$x   $y");
+                          _showAddHotspotDialog(context, x, y, projectInfo);
+                        },
+                      ),
+                      Container(
+                        decoration: const BoxDecoration(color: Colors.black12),
+                        padding: const EdgeInsets.all(2),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                  value: isEnableControl,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      isEnableControl = val!;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  "Bật control",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 12),
+                                )
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                  value: isEnableSensorControl,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      isEnableSensorControl = val!;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  "Bật cảm biến định hướng",
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 12),
+                                )
+                              ],
+                            ),
+                            const Text(
+                              "Nhấn và giữ vào 1 điểm bất kì để thêm Hotspot",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 12),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
                   ),
           ),
           StreamBuilder<double?>(
@@ -121,10 +185,112 @@ class _ViewVRState extends State<ViewVR> {
                 } else {
                   return const SizedBox.shrink();
                 }
-              })
+              }),
+          if (isDeleting)
+            const ProgressWidget(
+              text: "Đang xoá",
+            )
         ],
       ),
     );
+  }
+
+  _showBottom() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              const Text("Tất cả ảnh"),
+              const SizedBox(height: 16),
+              if (isDeleting)
+                Center(
+                  child: Column(
+                    children: const [
+                      CircularProgressIndicator.adaptive(),
+                      SizedBox(height: 8),
+                      Text("Đang xoá")
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 150,
+                child: FutureBuilder<ResponseVtProject>(
+                  future: Amz360.instance.getProject(id: widget.id),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      final list = snapshot.data!.data!.images!;
+                      return ListView.builder(
+                        itemCount: list.length,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) => Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Stack(
+                            children: [
+                              Image.network(list[index].image!.thumbnailUrl!),
+                              Positioned(
+                                  child: ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.pop(context, list[index].image!.id);
+                                },
+                                style: TextButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(24, 24)),
+                                child: const Icon(
+                                  Icons.delete,
+                                  size: 16,
+                                ),
+                              ))
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
+                      return const Center(
+                          child: CircularProgressIndicator.adaptive());
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await _pickingImage();
+                  },
+                  child: const Text("Thêm ảnh"))
+            ],
+          ),
+        ),
+      ),
+    ).then((id) async {
+      if (id != null) {
+        setState(() {
+          isDeleting = true;
+        });
+        await Amz360.instance
+            .deleteImageFromProject(idProject: widget.id, idImage: id!)
+            .then((value) => null)
+            .then((value) async {
+          setState(() {
+            isDeleting = false;
+          });
+
+          setState(() {
+            reload = true;
+          });
+          await Future.delayed(const Duration(seconds: 1));
+          setState(() {
+            reload = false;
+          });
+        });
+      }
+    });
   }
 
   _pickingImage() async {
@@ -141,12 +307,14 @@ class _ViewVRState extends State<ViewVR> {
           images: list,
           progressCallback: (sentBytes, totalBytes) {
             progressController.add(sentBytes / totalBytes);
+            if ((sentBytes / totalBytes) == 1) {
+              setState(() {
+                reload = true;
+              });
+            }
           },
         )
             .then((value) async {
-          setState(() {
-            reload = true;
-          });
           await Future.delayed(const Duration(milliseconds: 500));
           setState(() {
             reload = false;
@@ -271,8 +439,8 @@ class _ViewVRState extends State<ViewVR> {
                             if (type != HotspotType.link)
                               TextFormField(
                                 controller: titleController,
-                                decoration:
-                                    const InputDecoration(labelText: "Title"),
+                                decoration: const InputDecoration(
+                                    labelText: "Nhập title (Bắt buộc)"),
                               ),
                             const SizedBox(height: 8),
                             if (type == HotspotType.text)
@@ -332,55 +500,67 @@ class _ViewVRState extends State<ViewVR> {
                                       height: 150,
                                       width: MediaQuery.of(context).size.width /
                                           1.5,
-                                      child: ListView.builder(
-                                        itemCount: projectInfo!.images!.length,
-                                        scrollDirection: Axis.horizontal,
-                                        itemBuilder: (context, index) {
-                                          if (projectInfo
-                                                  .images![index].image!.id ==
-                                              projectInfo
-                                                  .currentImage!.image!.id) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          return GestureDetector(
-                                            onTap: () {
-                                              toImageId = projectInfo
-                                                  .images![index].image!.id;
-                                              tOtherImageIdController
-                                                  .add(toImageId);
-                                            },
-                                            child: Container(
-                                              height: 150,
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  2,
-                                              margin: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(
-                                                  border: snapshot.data != null
-                                                      ? snapshot.data ==
-                                                              projectInfo
-                                                                  .images![
-                                                                      index]
-                                                                  .image!
-                                                                  .id
-                                                          ? Border.all(
-                                                              color:
-                                                                  Colors.blue,
-                                                              width: 3)
-                                                          : null
-                                                      : null,
-                                                  image: DecorationImage(
-                                                      fit: BoxFit.cover,
-                                                      image: NetworkImage(
-                                                          projectInfo
-                                                              .images![index]
-                                                              .image!
-                                                              .thumbnailUrl!))),
+                                      child: projectInfo!.images!.length == 1
+                                          ? const Center(
+                                              child: Text(
+                                                  "Không có ảnh khác, vui lòng thêm ảnh mới"))
+                                          : ListView.builder(
+                                              itemCount:
+                                                  projectInfo.images!.length,
+                                              scrollDirection: Axis.horizontal,
+                                              itemBuilder: (context, index) {
+                                                if (projectInfo.images![index]
+                                                        .image!.id ==
+                                                    projectInfo.currentImage!
+                                                        .image!.id) {
+                                                  return const SizedBox
+                                                      .shrink();
+                                                }
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    toImageId = projectInfo
+                                                        .images![index]
+                                                        .image!
+                                                        .id;
+                                                    tOtherImageIdController
+                                                        .add(toImageId);
+                                                  },
+                                                  child: Container(
+                                                    height: 150,
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width /
+                                                            2,
+                                                    margin:
+                                                        const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                        border: snapshot.data !=
+                                                                null
+                                                            ? snapshot.data ==
+                                                                    projectInfo
+                                                                        .images![
+                                                                            index]
+                                                                        .image!
+                                                                        .id
+                                                                ? Border.all(
+                                                                    color: Colors
+                                                                        .blue,
+                                                                    width: 3)
+                                                                : null
+                                                            : null,
+                                                        image: DecorationImage(
+                                                            fit: BoxFit.cover,
+                                                            image: NetworkImage(
+                                                                projectInfo
+                                                                    .images![
+                                                                        index]
+                                                                    .image!
+                                                                    .thumbnailUrl!))),
+                                                  ),
+                                                );
+                                              },
                                             ),
-                                          );
-                                        },
-                                      ),
                                     );
                                   })
                           ],
