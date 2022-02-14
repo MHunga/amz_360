@@ -25,7 +25,7 @@ dependencies:
             url: git@github.com:MHunga/amz_360.git
             ref: 1.0.3 #(version)
 ```
-* **Android**: `minSdkVersion 17` and add support for `androidx` (see [AndroidX Migration](https://flutter.dev/docs/development/androidx-migration))
+* **Android**: `minSdkVersion 19` and add support for `androidx` (see [AndroidX Migration](https://flutter.dev/docs/development/androidx-migration))
 * **iOS**: `--ios-language swift`, Xcode version `>= 11`
 
 
